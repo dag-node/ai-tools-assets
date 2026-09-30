@@ -1,0 +1,16 @@
+{
+  "name": "dag-node-ai-tools-assets",
+  "owner": {
+    "name": "dag-node",
+    "email": "tools@dagnode.com"
+  },
+  "description": "Skills and subagents for coding agents, released as versioned sets",
+  "plugins": [
+    {
+      "name": "ai-tools-assets-core",
+      "source": "./sets/core",
+      "description": "Community baseline skills and subagents",
+      "license": "MIT"
+    }
+  ]
+}
