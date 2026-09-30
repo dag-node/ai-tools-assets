@@ -36,11 +36,11 @@ a plugin:
 
 ```text
 /plugin marketplace add dag-node/ai-tools-assets
-/plugin install ai-tools-core@ai-tools-assets
+/plugin install ai-tools-assets-core@ai-tools-assets
 ```
 
 Claude Code lists the plugin's skills and subagents as
-`ai-tools-core:<name>`.
+`ai-tools-assets-core:<name>`.
 
 Codex reads the same marketplace file:
 
@@ -55,7 +55,7 @@ Qwen Code installs a set from the same marketplace, skills and subagents
 both, and converts the subagents to its own format:
 
 ```bash
-qwen extensions install dag-node/ai-tools-assets:ai-tools-core
+qwen extensions install dag-node/ai-tools-assets:ai-tools-assets-core
 ```
 
 Install through the marketplace rather than from a path to `sets/core`: from
