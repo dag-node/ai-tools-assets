@@ -51,6 +51,28 @@ codex plugin marketplace add dag-node/ai-tools-assets
 It installs a set's skills from it; the subagents are in Claude Code's format
 and Codex does not load them.
 
+Qwen Code installs a set from the same marketplace, skills and subagents
+both, and converts the subagents to its own format:
+
+```bash
+qwen extensions install dag-node/ai-tools-assets:ai-tools-core
+```
+
+Install through the marketplace rather than from a path to `sets/core`: from
+a path, Qwen Code reads the set's portable `plugin.json` and installs the
+skills alone.
+
+Gemini CLI installs skills, from one skill's directory or from a set's whole
+`skills/` directory:
+
+```bash
+gemini skills install https://github.com/dag-node/ai-tools-assets.git --path sets/core/skills --consent
+```
+
+Gemini CLI, Codex and OpenCode also read skills from `~/.agents/skills`.
+Agents run through `ollama launch` take skills the way the agent they start
+does.
+
 With [Agent Tools
 Restricted](https://github.com/dag-node/tools-agent-tools-restricted)
 (`ai-tools-base`), install the set's package and name the assets to enable in
