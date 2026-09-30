@@ -73,11 +73,17 @@ A published set's name starts with its publisher:
 
 `core`, the `ai-tools-` prefix and the marketplace name `ai-tools-assets`
 belong to this repository; CI and base's validator refuse `ai-tools-` in every
-other set. A fork that publishes its own content renames its sets and its
-marketplace, so its packages, plugins and skills do not share a name with
-this repository's. An operator's local copy of `core` under
-`/usr/local/share/ai-tools-assets/` keeps the name on purpose: that is how
-ai-tools-base overrides a packaged set on one host.
+other set. A set's name does not start with a word from
+[tools/reserved-words.txt](tools/reserved-words.txt), the names of AI vendors,
+their agents and models, and large technology companies (`openai`, `codex`,
+`google`, `gemini`, `microsoft`, `qwen`, …), so a set and the assets it authors
+do not read as published by one of them. CI refuses such a set name; the word
+may still name a subject later in an asset's name (`ai-tools-codex-config`),
+and a vendored asset keeps its upstream name. A fork that publishes its own
+content renames its sets and its marketplace, so its packages, plugins and
+skills do not share a name with this repository's. An operator's local copy of
+`core` under `/usr/local/share/ai-tools-assets/` keeps the name on purpose:
+that is how ai-tools-base overrides a packaged set on one host.
 
 A name prevents a collision and does not prove who published a set. Base
 shows each set's `source` and reports when it changes, and a set's signature,
