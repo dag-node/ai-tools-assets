@@ -1,13 +1,14 @@
-# Default owner for everything; review requests route here automatically.
-* @p4nda
+# Review requests route to the maintainers team, which holds write access to
+# this repository; a code owner without write access is ignored.
+* @dag-node/ai-tools-maintainers
 
 # A set is reviewed by its maintainers; add a line per set as sets land.
 # core, keys, libs, the marketplace catalogue, the publisher, the reserved
 # names and CI need repository-owner review.
-/sets/core/ @p4nda
-/keys/ @p4nda
-/.claude-plugin/ @p4nda
-/publisher.conf @p4nda
-/tools/reserved-words.txt @p4nda
-/tools/check-publisher @p4nda
-/.github/workflows/ @p4nda
+/sets/core/ @dag-node/ai-tools-maintainers
+/keys/ @dag-node/ai-tools-maintainers
+/.claude-plugin/ @dag-node/ai-tools-maintainers
+/publisher.conf @dag-node/ai-tools-maintainers
+/tools/reserved-words.txt @dag-node/ai-tools-maintainers
+/tools/check-publisher @dag-node/ai-tools-maintainers
+/.github/workflows/ @dag-node/ai-tools-maintainers
