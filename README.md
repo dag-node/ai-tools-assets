@@ -42,6 +42,15 @@ a plugin:
 Claude Code lists the plugin's skills and subagents as
 `ai-tools-core:<name>`.
 
+Codex reads the same marketplace file:
+
+```bash
+codex plugin marketplace add dag-node/ai-tools-assets
+```
+
+It installs a set's skills from it; the subagents are in Claude Code's format
+and Codex does not load them.
+
 With [Agent Tools
 Restricted](https://github.com/dag-node/tools-agent-tools-restricted)
 (`ai-tools-base`), install the set's package and name the assets to enable in

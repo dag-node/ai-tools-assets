@@ -11,3 +11,5 @@ Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 
 - The set installs in Claude Code as the plugin `ai-tools-core`, from the
   repository's marketplace: `/plugin marketplace add dag-node/ai-tools-assets`.
+- The set's skills install in Codex from the same marketplace:
+  `codex plugin marketplace add dag-node/ai-tools-assets`.
