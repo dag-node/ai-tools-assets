@@ -18,7 +18,8 @@ implemented.
 ## Layout
 
 ```text
-sets/<set>/          set.conf, CHANGELOG.md, skills/, subagents/
+.claude-plugin/      marketplace.json: every set as a Claude Code plugin
+sets/<set>/          set.conf, CHANGELOG.md, .claude-plugin/, skills/, agents/
 keys/                maintainer public keys (reserved)
 packaging/           nFPM configuration, rendered per set
 tools/               new-set, new-asset, validate, build-set, link-set
@@ -29,6 +30,17 @@ Each set has a `set.conf` of `KEY=value` lines, which `ai-tools-base` reads
 and does not execute. The keys are documented in `ai-tools-assets(5)`.
 
 ## Using a set
+
+In Claude Code, add the repository as a marketplace and install a set as
+a plugin:
+
+```text
+/plugin marketplace add dag-node/ai-tools-assets
+/plugin install ai-tools-core@ai-tools-assets
+```
+
+Claude Code lists the plugin's skills and subagents as
+`ai-tools-core:<name>`.
 
 With [Agent Tools
 Restricted](https://github.com/dag-node/tools-agent-tools-restricted)

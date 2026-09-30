@@ -15,14 +15,22 @@ a session may do:
 - a subagent's `permissionMode`, `hooks` and `mcpServers`, which change
   permissions, run commands, or add tool servers;
 - dynamic context injection, which runs a shell command when the skill loads;
-- a `.claude-plugin/` directory, which turns a skill into a plugin that can
-  bundle hooks and servers;
+- a `.claude-plugin/` directory inside a skill, which turns the skill into
+  a plugin that can bundle hooks and servers;
+- in a set, any Claude Code plugin component other than skills and
+  subagents: hooks, MCP and LSP servers, `bin/`, monitors, commands,
+  workflows, output styles, themes and `settings.json`. A set directory
+  holds an allowlisted set of entries, so a component kind Claude Code adds
+  later is refused as well;
 - a NuGet package in a C# script, which fetches code the checksums do not
   cover.
 
 The repository is public and its content is not vetted per host. Installing
-a set does not enable any asset: `ai-tools-base` links an asset only when it
-is named in the operator's root-owned enable list.
+a set's package does not enable any asset: `ai-tools-base` links an asset only
+when it is named in the operator's root-owned enable list. Installing a set as
+a Claude Code plugin is the user's own action and enables every asset in it;
+an administrator restricts which marketplaces and plugins a user may install
+with Claude Code's `strictKnownMarketplaces` and `enabledPlugins` settings.
 
 ## Signing
 

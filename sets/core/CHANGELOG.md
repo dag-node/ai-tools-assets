@@ -6,3 +6,8 @@ Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+### Added
+
+- The set installs in Claude Code as the plugin `ai-tools-core`, from the
+  repository's marketplace: `/plugin marketplace add dag-node/ai-tools-assets`.
