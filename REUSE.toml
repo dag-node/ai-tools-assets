@@ -1,0 +1,18 @@
+# REUSE (https://reuse.software) licensing and copyright fallbacks.
+#
+# A file's own header, or an adjacent .license file, takes priority; these annotations supply the
+# copyright and the licence a file does not state for itself. A skill's `license` frontmatter field
+# overrides its set's `license` key, and a vendored skill keeps its upstream licence, recorded in its
+# UPSTREAM.conf and annotated here when it lands. Within this file only the last matching annotation
+# applies, so the broad path is listed first.
+
+version = 1
+SPDX-PackageName = "ai-tools-assets"
+SPDX-PackageDownloadLocation = "https://github.com/dag-node/ai-tools-assets"
+
+# Default for the maintainer's own work and for community contributions to the core set.
+[[annotations]]
+path = "**"
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Ondřej Nedomlel <tools@dagnode.com>"
+SPDX-License-Identifier = "MIT"
