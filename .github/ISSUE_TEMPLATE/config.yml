@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability (private)
+    url: https://github.com/dag-node/ai-tools-assets/security/advisories/new
+    about: An asset that tells an agent to exfiltrate data, widen its permissions, or run hidden code — never a public issue.
