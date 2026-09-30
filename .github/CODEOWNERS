@@ -1,0 +1,7 @@
+# Default owner for everything; review requests route here automatically.
+* @p4nda
+
+# A set is reviewed by its maintainers; add a line per set as sets land.
+# core, keys and libs need repository-owner review.
+/sets/core/ @p4nda
+/keys/ @p4nda
