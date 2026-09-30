@@ -2,7 +2,7 @@
 
 The community baseline set, maintained by the repository owners and released
 as the package `ai-tools-assets-core` and the Claude Code and Codex plugin
-`ai-tools-core`.
+`ai-tools-assets-core`.
 
 ```text
 set.conf                    name, version, licence: the source the manifests are written from

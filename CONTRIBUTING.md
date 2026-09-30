@@ -28,21 +28,22 @@ because Claude Code loads every `.md` file in it as a subagent.
 Neither plugin manifest declares any component keys, so each agent reads
 `skills/`, and Claude Code `agents/`, from their default places. Codex reads
 skills alone; the subagents are Claude Code's. Each manifest's `name`,
-`version` and `license` equal the set's: the plugin is `ai-tools-<set>` and
-takes its version from `set.conf`. The repository's
-`.claude-plugin/marketplace.json` lists every set, and Codex reads the same
-file. The manifests and the marketplace are written from `set.conf`, and CI
-refuses one that differs from it.
+`version` and `license` equal the set's: the plugin is named like the package,
+`ai-tools-assets-<set>`, and takes its version from `set.conf`. The
+repository's `.claude-plugin/marketplace.json` lists every set, and Codex reads
+the same file. The manifests and the marketplace are written from `set.conf`,
+and CI refuses one that differs from it.
 
-`core` is the community baseline, maintained by the repository owners; an
-organization or a domain adds its own set beside it, with its own
-`CODEOWNERS` line.
+`core` is the community baseline, maintained by the repository owners; a
+publisher adds its own set beside it, named as [Names](#asset-format) states,
+with its own `CODEOWNERS` line.
 
 A set's `set.conf` is `KEY=value` data, read by `ai-tools-base` and never
 sourced. It requires `format=1`, `name`, `version` (semver), `summary`,
-`license` (SPDX) and `maintainers`; `source`, `requires_base` and
-`integrations` are optional. Base reports and ignores an unknown key, and
-refuses a set whose `format` is higher than it supports.
+`license` (SPDX), `maintainers` and `source`, the repository the set is
+published from; `requires_base` and `integrations` are optional. Base reports
+and ignores an unknown key, and refuses a set whose `format` is higher than it
+supports.
 
 ## Asset format
 
@@ -52,23 +53,42 @@ An asset is found by its shape: a skill is a directory under `skills/` holding
 same rules, so an asset CI accepts also loads on a host.
 
 **Names.** An asset or set name is 1 to 64 characters of `a-z`, `0-9` and
-`-`, does not start or end with `-`, and does not contain `--`. It equals the
-skill's directory name, the subagent's file stem, or the set's directory, and
-the frontmatter `name`.
+`-`, does not start or end with `-`, does not contain `--`, and does not
+contain `anthropic` or `claude`, which Claude reserves. It equals the skill's
+directory name, the subagent's file stem, or the set's directory, and the
+frontmatter `name`.
 
-An agent lists skills and subagents in one list sorted by name, where the set
-does not show, so an asset a set's maintainers write starts with the set's
-prefix and the list groups it with its set:
+**A set's name is its namespace.** The package `ai-tools-assets-<set>`, the
+plugin of the same name, the install directory, every asset id
+`<set>/<kind>/<name>`, and the prefix of the set's asset names all derive from
+it. An agent lists skills and subagents in one list sorted by name, where the
+set does not show, so the prefix is what groups a set's assets in that list.
+A published set's name starts with its publisher:
 
-| Asset | Name |
-|---|---|
-| written for `core` | starts with `ai-tools-` |
-| written for another set `<set>` | starts with `<set>-` |
-| vendored, with an `UPSTREAM.conf` | keeps its upstream name |
+| Set | Name | Its assets |
+|---|---|---|
+| this repository's baseline | `core` | `ai-tools-<name>` |
+| a publisher's set | `<publisher>` or `<publisher>-<topic>`: `acme`, `acme-dotnet` | `<set>-<name>`: `acme-dotnet-ef-migrations` |
+| vendored into a set, with an `UPSTREAM.conf` | — | keeps its upstream name |
 
-`ai-tools-` is refused in every set other than `core`, by CI and by base's
-validator. The prefix orders the list and does not settle a clash: two
-enabled assets of one name are both left unlinked and reported.
+`core`, the `ai-tools-` prefix and the marketplace name `ai-tools-assets`
+belong to this repository; CI and base's validator refuse `ai-tools-` in every
+other set. A fork that publishes its own content renames its sets and its
+marketplace, so its packages, plugins and skills do not share a name with
+this repository's. An operator's local copy of `core` under
+`/usr/local/share/ai-tools-assets/` keeps the name on purpose: that is how
+ai-tools-base overrides a packaged set on one host.
+
+A name prevents a collision and does not prove who published a set. Base
+shows each set's `source` and reports when it changes, and a set's signature,
+once signing lands, is what binds a name to its publisher. Two enabled assets
+of one name are both left unlinked and reported.
+
+Skill names follow one pattern across a set, a noun phrase
+(`ai-tools-technical-writing`). A description says what the skill does, then
+when to use it, in the third person; Claude Code cuts a description at 1,536
+characters in its listing, so the key use case comes first. `SKILL.md` stays
+under 500 lines, with longer material in files it links to directly.
 
 **Skill frontmatter** uses only the Agent Skills specification's fields:
 
