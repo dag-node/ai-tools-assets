@@ -5,10 +5,35 @@ and the conventions for commits and pull requests.
 
 ## Sets
 
-A set lives in `sets/<set>/` and holds a `set.conf`, a `CHANGELOG.md`, and
-the kind directories `skills/` and `subagents/`. `core` is the community
-baseline, maintained by the repository owners; an organization or a domain
-adds its own set beside it, with its own `CODEOWNERS` line.
+A set lives in `sets/<set>/` and is also a Claude Code plugin, installed
+from the repository as it is committed, without a build step:
+
+```text
+sets/<set>/
+├── set.conf                    name, version, licence
+├── CHANGELOG.md
+├── README.md
+├── .claude-plugin/plugin.json  Claude Code plugin manifest
+├── skills/<name>/SKILL.md
+└── agents/<name>.md            subagents
+```
+
+A set directory holds these entries and no others; CI refuses anything else,
+including every other kind of plugin component (hooks, MCP and LSP servers,
+`bin/`, monitors, commands, workflows, output styles, themes,
+`settings.json`). `jobs/` is reserved. `agents/` holds subagent files alone,
+because Claude Code loads every `.md` file in it as a subagent.
+
+The plugin manifest does not declare any component keys, so Claude Code reads `skills/`
+and `agents/` from their default places, and its `name`, `version` and
+`license` equal the set's: the plugin is `ai-tools-<set>` and takes its
+version from `set.conf`. The repository's `.claude-plugin/marketplace.json`
+lists every set. Both are written from `set.conf`, and CI refuses one that
+differs from it.
+
+`core` is the community baseline, maintained by the repository owners; an
+organization or a domain adds its own set beside it, with its own
+`CODEOWNERS` line.
 
 A set's `set.conf` is `KEY=value` data, read by `ai-tools-base` and never
 sourced. It requires `format=1`, `name`, `version` (semver), `summary`,
@@ -19,15 +44,28 @@ refuses a set whose `format` is higher than it supports.
 ## Asset format
 
 An asset is found by its shape: a skill is a directory under `skills/` holding
-`SKILL.md`, and a subagent is a `*.md` file under `subagents/` other than
-`README.md`. Its id is `<set>/<kind>/<name>`. `tools/validate` in CI and base's
-validator apply the same rules, so an asset CI accepts also loads on a host.
+`SKILL.md`, and a subagent is a `*.md` file under `agents/`. Its id is
+`<set>/<kind>/<name>`. `tools/validate` in CI and base's validator apply the
+same rules, so an asset CI accepts also loads on a host.
 
 **Names.** An asset or set name is 1 to 64 characters of `a-z`, `0-9` and
 `-`, does not start or end with `-`, and does not contain `--`. It equals the
 skill's directory name, the subagent's file stem, or the set's directory, and
-the frontmatter `name`. The `ai-tools-` prefix belongs to base's own assets
-and is refused.
+the frontmatter `name`.
+
+An agent lists skills and subagents in one list sorted by name, where the set
+does not show, so an asset a set's maintainers write starts with the set's
+prefix and the list groups it with its set:
+
+| Asset | Name |
+|---|---|
+| written for `core` | starts with `ai-tools-` |
+| written for another set `<set>` | starts with `<set>-` |
+| vendored, with an `UPSTREAM.conf` | keeps its upstream name |
+
+`ai-tools-` is refused in every set other than `core`, by CI and by base's
+validator. The prefix orders the list and does not settle a clash: two
+enabled assets of one name are both left unlinked and reported.
 
 **Skill frontmatter** uses only the Agent Skills specification's fields:
 
@@ -55,7 +93,10 @@ and `metadata`. Any other key is refused.
 **Body and files.** CI refuses:
 
 - dynamic context injection: a `` !`command` `` line or a ` ```! ` block;
-- a `.claude-plugin/` directory;
+- a `.claude-plugin/` directory inside a skill, which would make the skill
+  a plugin of its own;
+- a symbolic link inside an asset, which a zip or a copy does not carry
+  the same way on every host;
 - an absolute path into `/opt/ai-tools`, `/usr/share` or `/usr/local/share`;
   a skill names its own files relative to its root, and another skill by name;
 - in a `.cs` script, a `#:package` directive, an `#:sdk` other than
@@ -64,14 +105,18 @@ and `metadata`. Any other key is refused.
 - a committed binary, and content under `jobs/` or `libs/`, which are
   reserved.
 
-A skill carries every file it runs and calls a script through its interpreter
-(`python3 scripts/x.py`, `bash scripts/x.sh`, `dotnet run scripts/x.cs`), so a
-call does not depend on the exec bit. Python scripts use the standard library
-only. CI warns on a `SKILL.md` over 500 lines.
+A skill carries every file it runs, committed in the skill, and calls
+a script through its interpreter (`python3 scripts/x.py`, `bash scripts/x.sh`,
+`dotnet run scripts/x.cs`), so a call does not depend on the exec bit. A git
+install reads the repository as committed, so a library shared through
+`libs/`, once it lands, is copied into each skill that uses it and the copy is
+committed. Python scripts use the standard library only. CI warns on
+a `SKILL.md` over 500 lines.
 
 **Reserved file names.** `SHA256SUMS`, `SHA256SUMS.asc`, `SHA512SUMS*`,
-`*.oms.sig`, `UPSTREAM.conf`, and `README.md` in a kind directory are never
-discovered as assets. CI refuses one used for anything else.
+`*.oms.sig`, `UPSTREAM.conf`, `README.md`, `plugin.json`, and the directories
+`.claude-plugin/` and `.agents/` are never discovered as assets. CI refuses
+one used for anything else.
 
 The allowlists start narrow: allowing a field later does not break a shipped
 set, where refusing one would. Propose a field in an issue, with the asset that

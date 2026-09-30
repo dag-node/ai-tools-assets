@@ -2,6 +2,7 @@
 * @p4nda
 
 # A set is reviewed by its maintainers; add a line per set as sets land.
-# core, keys and libs need repository-owner review.
+# core, keys, libs and the marketplace catalogue need repository-owner review.
 /sets/core/ @p4nda
 /keys/ @p4nda
+/.claude-plugin/ @p4nda
