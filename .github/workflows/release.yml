@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: MIT
+# Runs for a set's release tag, <set>/v<semver>. Before anything is built, it
+# checks that publisher.conf names the GitHub owner and URL of the repository
+# the tag is pushed to, so a fork that has not set its own publisher fails here and
+# does not publish under this repository's names. Packaging joins this
+# workflow when tools/build-set is implemented.
+name: release
+
+on:
+  push:
+    tags: ['*/v*']
+
+permissions:
+  contents: read
+
+jobs:
+  publisher:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: publisher.conf describes this repository
+        env:
+          REPOSITORY: ${{ github.repository }}
+        run: python3 tools/check-publisher --repository "$REPOSITORY"

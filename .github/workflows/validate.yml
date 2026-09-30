@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: MIT
+# Checks every pull request and every push to main. Today it checks that the
+# published names agree with publisher.conf; tools/validate joins it when it
+# is implemented.
+name: validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  # The job name is the status check a ruleset requires on main; renaming it
+  # leaves the requirement waiting for a check that no longer runs.
+  check-publisher:
+    name: check-publisher
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Published names agree with publisher.conf
+        run: python3 tools/check-publisher
