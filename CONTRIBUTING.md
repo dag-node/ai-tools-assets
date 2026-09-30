@@ -51,8 +51,21 @@ same rules, so an asset CI accepts also loads on a host.
 **Names.** An asset or set name is 1 to 64 characters of `a-z`, `0-9` and
 `-`, does not start or end with `-`, and does not contain `--`. It equals the
 skill's directory name, the subagent's file stem, or the set's directory, and
-the frontmatter `name`. The `ai-tools-` prefix belongs to base's own assets
-and is refused.
+the frontmatter `name`.
+
+An agent lists skills and subagents in one list sorted by name, where the set
+does not show, so an asset a set's maintainers write starts with the set's
+prefix and the list groups it with its set:
+
+| Asset | Name |
+|---|---|
+| written for `core` | starts with `ai-tools-` |
+| written for another set `<set>` | starts with `<set>-` |
+| vendored, with an `UPSTREAM.conf` | keeps its upstream name |
+
+`ai-tools-` is refused in every set other than `core`, by CI and by base's
+validator. The prefix orders the list and does not settle a clash: two
+enabled assets of one name are both left unlinked and reported.
 
 **Skill frontmatter** uses only the Agent Skills specification's fields:
 
