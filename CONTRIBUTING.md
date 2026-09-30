@@ -71,19 +71,34 @@ A published set's name starts with its publisher:
 | a publisher's set | `<publisher>` or `<publisher>-<topic>`: `acme`, `acme-dotnet` | `<set>-<name>`: `acme-dotnet-ef-migrations` |
 | vendored into a set, with an `UPSTREAM.conf` | — | keeps its upstream name |
 
-`core`, the `ai-tools-` prefix and the marketplace name `ai-tools-assets`
-belong to this repository; CI and base's validator refuse `ai-tools-` in every
-other set. A set's name does not start with a word from
-[tools/reserved-words.txt](tools/reserved-words.txt), the names of AI vendors,
-their agents and models, and large technology companies (`openai`, `codex`,
-`google`, `gemini`, `microsoft`, `qwen`, …), so a set and the assets it authors
-do not read as published by one of them. CI refuses such a set name; the word
-may still name a subject later in an asset's name (`ai-tools-codex-config`),
-and a vendored asset keeps its upstream name. A fork that publishes its own
-content renames its sets and its marketplace, so its packages, plugins and
+`core` and the `ai-tools-` prefix belong to this repository; CI and base's
+validator refuse `ai-tools-` in every other set. A set's name does not start
+with a word from [tools/reserved-words.txt](tools/reserved-words.txt), the
+names of AI vendors, their agents and models, and large technology companies
+(`openai`, `codex`, `google`, `gemini`, `microsoft`, `qwen`, …), so a set and
+the assets it authors do not read as published by one of them. CI refuses such
+a set name; the word may still name a subject later in an asset's name
+(`ai-tools-codex-config`), and a vendored asset keeps its upstream name. A fork
+that publishes its own content renames its sets, so its packages, plugins and
 skills do not share a name with this repository's. An operator's local copy of
 `core` under `/usr/local/share/ai-tools-assets/` keeps the name on purpose:
 that is how ai-tools-base overrides a packaged set on one host.
+
+**The publisher** is named once, in `publisher.conf` at the repository root:
+
+```ini
+publisher=dag-node
+```
+
+The marketplace is `<publisher>-ai-tools-assets`, with the publisher as its
+`owner`, and every set other than `core` starts with the publisher, so a user
+installs `ai-tools-assets-core@dag-node-ai-tools-assets`.
+`tools/check-publisher` refuses a marketplace, a set or a plugin manifest that
+disagrees with `publisher.conf`, on every pull request, and a release tag also
+requires `publisher` to be the GitHub owner of the repository the tag is pushed
+to. An unchanged fork therefore passes its pull requests, which a contributor's
+fork needs, and fails its first release. A fork that publishes sets its own
+`publisher`, renames its sets, and publishes a marketplace of its own name.
 
 A name prevents a collision and does not prove who published a set. Base
 shows each set's `source` and reports when it changes, and a set's signature,

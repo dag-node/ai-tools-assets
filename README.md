@@ -36,7 +36,7 @@ a plugin:
 
 ```text
 /plugin marketplace add dag-node/ai-tools-assets
-/plugin install ai-tools-assets-core@ai-tools-assets
+/plugin install ai-tools-assets-core@dag-node-ai-tools-assets
 ```
 
 Claude Code lists the plugin's skills and subagents as

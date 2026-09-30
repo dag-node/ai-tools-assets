@@ -2,7 +2,12 @@
 * @p4nda
 
 # A set is reviewed by its maintainers; add a line per set as sets land.
-# core, keys, libs and the marketplace catalogue need repository-owner review.
+# core, keys, libs, the marketplace catalogue, the publisher, the reserved
+# names and CI need repository-owner review.
 /sets/core/ @p4nda
 /keys/ @p4nda
 /.claude-plugin/ @p4nda
+/publisher.conf @p4nda
+/tools/reserved-words.txt @p4nda
+/tools/check-publisher @p4nda
+/.github/workflows/ @p4nda

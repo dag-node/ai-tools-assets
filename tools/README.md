@@ -1,9 +1,11 @@
 # Tools
 
-Maintainer and user commands for sets. None is implemented yet.
+Maintainer and user commands for sets. `check-publisher` is implemented; the
+others are not yet.
 
 | Command | What it does |
 |---|---|
+| `check-publisher` | checks that the marketplace, the set names and the plugin manifests agree with `publisher.conf`; with `--owner`, that `publisher.conf` names the repository's GitHub owner. CI runs it on every pull request, and with `--owner` on every release tag |
 | `new-set` | creates `sets/<set>/` with a `set.conf` and a `CHANGELOG.md` |
 | `new-asset` | creates a skill or subagent in a set from a template |
 | `validate` | applies the [asset format](../CONTRIBUTING.md#asset-format) and runs `skills-ref validate` |
