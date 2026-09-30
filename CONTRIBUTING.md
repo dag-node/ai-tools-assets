@@ -5,14 +5,15 @@ and the conventions for commits and pull requests.
 
 ## Sets
 
-A set lives in `sets/<set>/` and is also a Claude Code plugin, installed
-from the repository as it is committed, without a build step:
+A set lives in `sets/<set>/` and is also a Claude Code and a Codex plugin,
+installed from the repository as it is committed, without a build step:
 
 ```text
 sets/<set>/
 ├── set.conf                    name, version, licence
 ├── CHANGELOG.md
 ├── README.md
+├── plugin.json                 Agent Plugins manifest, read by Codex
 ├── .claude-plugin/plugin.json  Claude Code plugin manifest
 ├── skills/<name>/SKILL.md
 └── agents/<name>.md            subagents
@@ -24,12 +25,14 @@ including every other kind of plugin component (hooks, MCP and LSP servers,
 `settings.json`). `jobs/` is reserved. `agents/` holds subagent files alone,
 because Claude Code loads every `.md` file in it as a subagent.
 
-The plugin manifest does not declare any component keys, so Claude Code reads `skills/`
-and `agents/` from their default places, and its `name`, `version` and
-`license` equal the set's: the plugin is `ai-tools-<set>` and takes its
-version from `set.conf`. The repository's `.claude-plugin/marketplace.json`
-lists every set. Both are written from `set.conf`, and CI refuses one that
-differs from it.
+Neither plugin manifest declares any component keys, so each agent reads
+`skills/`, and Claude Code `agents/`, from their default places. Codex reads
+skills alone; the subagents are Claude Code's. Each manifest's `name`,
+`version` and `license` equal the set's: the plugin is `ai-tools-<set>` and
+takes its version from `set.conf`. The repository's
+`.claude-plugin/marketplace.json` lists every set, and Codex reads the same
+file. The manifests and the marketplace are written from `set.conf`, and CI
+refuses one that differs from it.
 
 `core` is the community baseline, maintained by the repository owners; an
 organization or a domain adds its own set beside it, with its own
