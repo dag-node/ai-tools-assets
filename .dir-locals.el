@@ -1,0 +1,13 @@
+;; SPDX-License-Identifier: MIT
+;; The column each file kind wraps its prose at, matching ai-tools-base's checkout: a config file
+;; header at 72 (the RFC text width), a source comment at 120, a Markdown page a person reads at 80,
+;; and the skills and subagents an agent retrieves with grep at 120.
+((conf-mode . ((fill-column . 72)))
+ (conf-unix-mode . ((fill-column . 72)))
+ (sh-mode . ((fill-column . 120)))
+ (python-mode . ((fill-column . 120)))
+ (csharp-mode . ((fill-column . 120)))
+ (emacs-lisp-mode . ((fill-column . 120)))
+ (markdown-mode . ((fill-column . 80)))
+ ("sets/" . ((markdown-mode . ((fill-column . 120)))))
+ ("vendor/" . ((markdown-mode . ((fill-column . 120))))))
