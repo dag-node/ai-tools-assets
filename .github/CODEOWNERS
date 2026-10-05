@@ -4,11 +4,11 @@
 
 # A set is reviewed by its maintainers; add a line per set as sets land.
 # core, keys, libs, the marketplace catalogue, the publisher, the reserved
-# names and CI need repository-owner review.
+# names and .github/ (CI and this file) need repository-owner review.
 /sets/core/ @dag-node/ai-tools-maintainers
 /keys/ @dag-node/ai-tools-maintainers
 /.claude-plugin/ @dag-node/ai-tools-maintainers
 /publisher.conf @dag-node/ai-tools-maintainers
 /tools/reserved-words.txt @dag-node/ai-tools-maintainers
 /tools/check-publisher @dag-node/ai-tools-maintainers
-/.github/workflows/ @dag-node/ai-tools-maintainers
+/.github/ @dag-node/ai-tools-maintainers
