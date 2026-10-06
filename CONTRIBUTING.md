@@ -194,11 +194,16 @@ Commit messages follow `type(scope): summary` (`feat`, `fix`, `docs`, `test`,
 `feat(core): add the pdf-processing skill`. Keep the "why" in the body. Record
 a user-visible change in the set's `CHANGELOG.md` in the same pull request.
 
-### AI-assisted commits
+### Sign-off
 
-Commits in this repository frequently carry a `Co-Authored-By` trailer naming
-an AI model. This records how the change was produced. Every commit is
-authored and reviewed by a human contributor.
+Every commit carries a `Signed-off-by: Name <email>` trailer that matches its
+author; `git commit -s` adds it. The trailer certifies the
+[Developer Certificate of Origin 1.1](https://developercertificate.org/):
+that you wrote the change, or have the right to submit it, under the licence
+the file states. It is a certification, not a cryptographic signature. The
+`validate` workflow checks every commit of a pull request for an
+author-matching sign-off once outside contributions open, with no exemption
+for a bot or a merge commit.
 
 ## Pull requests
 
