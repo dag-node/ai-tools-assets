@@ -203,7 +203,9 @@ that you wrote the change, or have the right to submit it, under the licence
 the file states. It is a certification, not a cryptographic signature. The
 `validate` workflow checks every commit of a pull request for an
 author-matching sign-off once outside contributions open, with no exemption
-for a bot or a merge commit.
+for a bot or a merge commit. A `Co-Authored-By` trailer names a person who
+also signs off, so a commit does not carry a co-author trailer for a tool or
+a model, which cannot certify the DCO.
 
 ## Pull requests
 
