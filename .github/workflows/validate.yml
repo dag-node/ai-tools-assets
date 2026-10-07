@@ -1,8 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Checks every pull request and every push to develop and main with the
-# reusable workflow from dag-node/ai-tools-assets-tools, pinned to a commit
-# until that repository tags v1. The tools run from the pinned commit, not
-# from this tree.
+# reusable workflow from dag-node/ai-tools-assets-tools at a pinned version.
+# The tools run from that version, not from this tree.
 name: validate
 
 on:
@@ -14,8 +13,9 @@ permissions:
   contents: read
 
 jobs:
-  # A called job reports its check run as `<this job> / <called job>`, so the
-  # ruleset on main requires `validate / validate`; renaming this job leaves
-  # the requirement waiting for a check that no longer runs.
-  validate:
+  # A called job reports its check run as `<this job> / <called job>`. This
+  # job is named for the repository, so its check is
+  # `ai-tools-assets / validate`, the exact context the ruleset on main
+  # requires.
+  ai-tools-assets:
     uses: dag-node/ai-tools-assets-tools/.github/workflows/validate.yml@0d594173f12f79dd1c10919a18de918f0fcecd50
