@@ -6,6 +6,11 @@ under `/usr/share/ai-tools-assets/<set>/` and released from the tag
 `<set>/v<semver>`. RPM is built first; deb, apk and Arch packages come from the
 same configuration.
 
+nFPM builds each package without a signature. The release then signs the RPM
+with `rpmsign` inside an EL container, using the dag-node package-signing
+subkey, the same signing step `ai-tools-base`'s releases run. A host verifies
+the package with `rpmkeys -K` against the key `rpm.dagnode.com` serves.
+
 The same release also publishes `ai-tools-assets-<set>-<version>.zip`, built
 from the same files as the package, with the set directory at the top of the
 archive. It serves an agent without a package manager, and Claude Code
