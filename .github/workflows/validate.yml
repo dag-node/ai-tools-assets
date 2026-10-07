@@ -1,24 +1,21 @@
 # SPDX-License-Identifier: MIT
-# Checks every pull request and every push to main. Today it checks that the
-# published names agree with publisher.conf; tools/validate joins it when it
-# is implemented.
+# Checks every pull request and every push to develop and main with the
+# reusable workflow from dag-node/ai-tools-assets-tools, pinned to a commit
+# until that repository tags v1. The tools run from the pinned commit, not
+# from this tree.
 name: validate
 
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [develop, main]
 
 permissions:
   contents: read
 
 jobs:
-  # The job name is the status check a ruleset requires on main; renaming it
-  # leaves the requirement waiting for a check that no longer runs.
-  check-publisher:
-    name: check-publisher
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Published names agree with publisher.conf
-        run: python3 tools/check-publisher
+  # A called job reports its check run as `<this job> / <called job>`, so the
+  # ruleset on main requires `validate / validate`; renaming this job leaves
+  # the requirement waiting for a check that no longer runs.
+  validate:
+    uses: dag-node/ai-tools-assets-tools/.github/workflows/validate.yml@0d594173f12f79dd1c10919a18de918f0fcecd50
