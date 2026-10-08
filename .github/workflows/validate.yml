@@ -2,6 +2,7 @@
 # Checks every pull request and every push to develop and main with the
 # reusable workflow from dag-node/ai-tools-assets-tools at a pinned version.
 # The tools run from that version, not from this tree.
+# The tests job runs the tests each skill ships with its scripts.
 name: validate
 
 on:
@@ -19,3 +20,30 @@ jobs:
   # requires.
   ai-tools-assets:
     uses: dag-node/ai-tools-assets-tools/.github/workflows/validate.yml@928e30d18e74acbef3177bc78cd52166b29d400c
+
+  # A skill that ships scripts ships their tests under its tests/. Each
+  # directory is discovered on its own, at the Python floor the scripts
+  # are written for and at a current release.
+  tests:
+    name: skill tests (python ${{ matrix.python }})
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        python: ['3.9', '3.12']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Every skill's tests
+        run: |
+          shopt -s nullglob
+          status=0
+          for directory in sets/*/skills/*/tests; do
+            echo "::group::$directory"
+            python3 -m unittest discover -s "$directory" -v || status=1
+            echo "::endgroup::"
+          done
+          exit "$status"
