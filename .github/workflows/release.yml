@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   ai-tools-assets:
-    uses: dag-node/ai-tools-assets-tools/.github/workflows/set-release.yml@ed7d08b9686594fa4abdb08c9d6b28c305610e5e
+    uses: dag-node/ai-tools-assets-tools/.github/workflows/set-release.yml@928e30d18e74acbef3177bc78cd52166b29d400c
     permissions:
       contents: write
     secrets: inherit
