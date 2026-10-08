@@ -163,9 +163,12 @@ class MarkupChecksTest(ProseCheckTestCase):
         self.assertCases([
             # An extension outside the whole-file set would read a section-7 page as source and report zero.
             ("nothing", "TEST-PC-141-man-page-seven.7", ".TH X 7", "There is nothing left to check."),
-            # The SPDX tag is not joined to the header sentence beneath it.
+            # The SPDX tag is not joined to the header sentence beneath it. `reuse lint` and check-licenses read the
+            # tag in this fixture as a second expression of this file, so the lines sit in an ignored block.
+            # REUSE-IgnoreStart
             ("bare-option", "TEST-PC-101-spdx.sh", "# SPDX-License-Identifier: AGPL-3.0-only",
              "# The claim takes --for and refuses root."),
+            # REUSE-IgnoreEnd
         ], [
             ("TEST-PC-99-contract-fragment.sh", "x=1", "# usage: ai-tools-admin operators add --for <name>"),
             ("TEST-PC-99-contract-signature.md",
