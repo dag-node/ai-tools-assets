@@ -11,9 +11,9 @@ permissions or run code. A set skill therefore loads unchanged in Claude Code,
 Codex, Qwen Code and other agents that read `SKILL.md`, and it does not widen
 what a session may do.
 
-**Status.** The repository has its layout and the empty `core` set. It does
-not ship any skills or subagents yet, and the commands under `tools/` are not
-implemented.
+**Status.** The repository has its layout, the empty `core` set, and the
+release workflow that signs and packages a set from its tag. It does not ship
+any skills or subagents yet; the `core` set is ported next.
 
 ## Layout
 
