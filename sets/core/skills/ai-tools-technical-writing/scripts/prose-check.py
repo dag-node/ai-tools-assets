@@ -68,7 +68,8 @@
 # `--all` adds the shape checks. Each one greps a sub-shape of its rule -- the half a regex can see -- because the rules
 # themselves are about meaning: "an absolute with no guard in the same sentence" and "a clause mirrored across a pivot"
 # are not properties of any word list. A vocabulary grep for them reported correct prose on most of what it flagged
-# when it was sampled against this repository, so each check now carries a second condition:
+# when it was sampled against ai-tools-base, the tree the checks were written in, so each check now carries a second
+# condition:
 #
 #   unbacked-absolute  the sentence holds an absolute AND no subordinating conjunction, since a
 #                      guard clause is what those conjunctions introduce.
@@ -240,7 +241,7 @@ _EMITTED_NOTHING = re.compile(
 def hidden_scope_nothing(sentence):
     """`nothing` standing in for a scope the sentence never names, an output verb's result aside.
 
-    Two widenings were measured against this repository and declined, so neither is re-derived:
+    Two widenings were measured against ai-tools-base and declined, so neither is re-derived:
 
       the other indefinite pronouns  `everything`/`anything`/`something` beside a copula, in
                      either order, reports 49 sentences of which nearly all are ordinary English --
@@ -267,7 +268,7 @@ def hidden_scope_nothing(sentence):
 # `bare-option` reads a DOCUMENT AND A SOURCE COMMENT, and `bare-placeholder`, `bare-variable` and `bare-path` read
 # a document alone. What separates them is the surrounding text: a comment sits inside the code it describes,
 # where an identifier, a placeholder and a path are the grammar of the file and read as themselves, while an option is
-# a token a reader copies to a terminal from either surface. Measured over this repository the document-only checks
+# a token a reader copies to a terminal from either surface. Measured over ai-tools-base the document-only checks
 # report about three thousand comment sites against the option's six hundred, so reading them there would put
 # the pre-commit hook past what a commit could answer for.
 #
@@ -447,9 +448,9 @@ ABSOLUTE = re.compile(r"\b(never|always|cannot)\b")
 MIRROR_PIVOT = re.compile(r"\b(rather than|instead of)\b")
 DEFINITIONAL_PIVOT = re.compile(r"\b(?:is|are) not (?:a|an|the)\b")
 
-# Four characters is the shortest prefix that separates the stems this repository uses (`stop`/`stay`, `read`/`real`)
-# while still tying `costs` to `costing` and `control` to `controls`. Words of three letters or fewer carry no stem
-# worth matching.
+# Four characters is the shortest prefix that separates the stems ai-tools-base's prose uses (`stop`/`stay`,
+# `read`/`real`) while still tying `costs` to `costing` and `control` to `controls`. Words of three letters or fewer
+# carry no stem worth matching.
 WORD = re.compile(r"[a-z][a-z-]{3,}")
 # Words each side of the pivot. Five is what separates a mirror from a sentence that happens to reuse its own subject:
 # `a verb on ai-tools-admin rather than a binary of its own` repeats `binary` from six words back, and that repeat is
