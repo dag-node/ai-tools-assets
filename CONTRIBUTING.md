@@ -116,9 +116,10 @@ are the fork's to update; they do not ship in a set. The copyright lines in
 a fork adds its own for its changes.
 
 A name prevents a collision and does not prove who published a set. Base
-shows each set's `source` and reports when it changes, and a set's signature,
-once signing lands, is what binds a name to its publisher. Two enabled assets
-of one name are both left unlinked and reported.
+shows each set's `source` and reports when it changes, and a set's signature
+in `SHA256SUMS.asc`, verified against the key a root-owned binding names for
+the set, is what binds a name to its publisher. Two enabled assets of one name
+are both left unlinked and reported.
 
 Skill names follow one pattern across a set, a noun phrase
 (`ai-tools-technical-writing`). A description says what the skill does, then
