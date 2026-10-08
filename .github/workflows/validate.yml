@@ -20,6 +20,9 @@ jobs:
   # requires.
   ai-tools-assets:
     uses: dag-node/ai-tools-assets-tools/.github/workflows/validate.yml@928e30d18e74acbef3177bc78cd52166b29d400c
+    with:
+      # The sign-off check fails the job here; the reusable workflow reports it alone until a caller sets this.
+      enforce-signoff: true
 
   # A skill that ships scripts ships their tests under its tests/. Each
   # directory is discovered on its own, at the Python floor the scripts
