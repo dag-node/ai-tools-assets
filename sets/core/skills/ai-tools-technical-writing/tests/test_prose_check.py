@@ -651,8 +651,8 @@ class WrapTest(ProseCheckTestCase):
              "[c]: " + LONG_MD.replace(" ", "-")),
             ("TEST-PC-157-document-width-frontmatter.md", "---", "description: " + LONG_MD, "---", "Body."),
             # The parenthesised part of a label link is generated.
-            ("TEST-PC-75-document-width-label-link.md", "word " * 8 + "[ref-section-y4v2](../../src/usr/share/ai-tools/"
-             "skills/ai-tools-technical-docs/SKILL.md#ref-section-y4v2) ends."),
+            ("TEST-PC-75-document-width-label-link.md", "word " * 8 + "[ref-section-y4v2](../../sets/core/skills/"
+             "ai-tools-technical-writing/SKILL.md#ref-section-y4v2) ends."),
         ], options=self.WRAP)
         _, out = self.run_check("--wrap", "--width", "60",
                                 self.fixture("TEST-PC-66-document-width-arg.md", "# Title", MEDIUM_MD))
