@@ -20,8 +20,8 @@ implemented.
 ```text
 .claude-plugin/      marketplace.json: every set as a Claude Code plugin
 sets/<set>/          set.conf, CHANGELOG.md, .claude-plugin/, skills/, agents/
-keys/                maintainer public keys (reserved)
-packaging/           nFPM configuration, rendered per set
+keys/                the keys a release is signed with
+packaging/           how a set is released and what a release attaches
 tools/               new-set, new-asset, validate, build-set, link-set
 tests/               tests for tools/
 ```
