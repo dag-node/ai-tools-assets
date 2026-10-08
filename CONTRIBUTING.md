@@ -192,9 +192,12 @@ needs it.
 
 ## Checks
 
-CI runs `tools/validate` (which includes `skills-ref validate`), `reuse lint`,
-`shellcheck`, `ruff`, a secret scan, and a check that no file name matches
-a credential pattern.
+CI runs the pinned tools' `validate` workflow: `tools/validate` over the
+sets, `sync-manifests --check`, `check-licenses`, `reuse lint`, `shellcheck`
+over every tracked `.sh` file, and `check-signoff` over the pull request's
+commits; the `skill tests` job runs every skill's tests on Python 3.9 and
+3.12. The repository's `.gitignore` keeps `.env`, `*.pem` and `*.key` files
+out of a commit.
 
 ## Commit style
 
