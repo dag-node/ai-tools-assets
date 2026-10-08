@@ -18,4 +18,4 @@ jobs:
   # `ai-tools-assets / validate`, the exact context the ruleset on main
   # requires.
   ai-tools-assets:
-    uses: dag-node/ai-tools-assets-tools/.github/workflows/validate.yml@d1292a43fcf47ef51e506a5e36b3cc118b54926f
+    uses: dag-node/ai-tools-assets-tools/.github/workflows/validate.yml@ed7d08b9686594fa4abdb08c9d6b28c305610e5e
