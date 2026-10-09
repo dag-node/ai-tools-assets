@@ -11,17 +11,17 @@ permissions or run code. A set skill therefore loads unchanged in Claude Code,
 Codex, Qwen Code and other agents that read `SKILL.md`, and it does not widen
 what a session may do.
 
-**Status.** The repository has its layout and the empty `core` set. It does
-not ship any skills or subagents yet, and the commands under `tools/` are not
-implemented.
+**Status.** The repository has its layout, the empty `core` set, and the
+release workflow that signs and packages a set from its tag. It does not ship
+any skills or subagents yet; the `core` set is ported next.
 
 ## Layout
 
 ```text
 .claude-plugin/      marketplace.json: every set as a Claude Code plugin
 sets/<set>/          set.conf, CHANGELOG.md, .claude-plugin/, skills/, agents/
-keys/                maintainer public keys (reserved)
-packaging/           nFPM configuration, rendered per set
+keys/                the keys a release is signed with
+packaging/           how a set is released and what a release attaches
 tools/               new-set, new-asset, validate, build-set, link-set
 tests/               tests for tools/
 ```

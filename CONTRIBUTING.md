@@ -116,9 +116,10 @@ are the fork's to update; they do not ship in a set. The copyright lines in
 a fork adds its own for its changes.
 
 A name prevents a collision and does not prove who published a set. Base
-shows each set's `source` and reports when it changes, and a set's signature,
-once signing lands, is what binds a name to its publisher. Two enabled assets
-of one name are both left unlinked and reported.
+shows each set's `source` and reports when it changes, and a set's signature
+in `SHA256SUMS.asc`, verified against the key a root-owned binding names for
+the set, is what binds a name to its publisher. Two enabled assets of one name
+are both left unlinked and reported.
 
 Skill names follow one pattern across a set, a noun phrase
 (`ai-tools-technical-writing`). A description says what the skill does, then
@@ -156,8 +157,12 @@ and `metadata`. Any other key is refused.
   a plugin of its own;
 - a symbolic link inside an asset, which a zip or a copy does not carry
   the same way on every host;
+- a file or directory name outside the POSIX portable set, `A-Za-z0-9._-`,
+  one that opens with `-`, or one over 255 bytes;
 - an absolute path into `/opt/ai-tools`, `/usr/share` or `/usr/local/share`;
   a skill names its own files relative to its root, and another skill by name;
+- a relative link in `SKILL.md` or a subagent file, outside code, that does
+  not name a regular file of the same asset;
 - in a `.cs` script, a `#:package` directive, an `#:sdk` other than
   `Microsoft.NET.Sdk` or `Microsoft.NET.Sdk.Web`, and a `#:project` outside
   the skill;
@@ -169,8 +174,12 @@ a script through its interpreter (`python3 scripts/x.py`, `bash scripts/x.sh`,
 `dotnet run scripts/x.cs`), so a call does not depend on the exec bit. A git
 install reads the repository as committed, so a library shared through
 `libs/`, once it lands, is copied into each skill that uses it and the copy is
-committed. Python scripts use the standard library only. CI warns on
-a `SKILL.md` over 500 lines.
+committed. Python scripts use the standard library only, and a script's tests
+sit under the skill's `tests/`, where CI runs them on Python 3.9 and on a
+current release. Run them with
+`python3 -B -m unittest discover -s sets/<set>/skills/<name>/tests`; `-B`
+keeps the bytecode cache, which `tools/validate` refuses, out of the tree.
+CI warns on a `SKILL.md` over 500 lines.
 
 **Reserved file names.** `SHA256SUMS`, `SHA256SUMS.asc`, `SHA512SUMS*`,
 `*.oms.sig`, `UPSTREAM.conf`, `README.md`, `plugin.json`, and the directories
@@ -183,9 +192,12 @@ needs it.
 
 ## Checks
 
-CI runs `tools/validate` (which includes `skills-ref validate`), `reuse lint`,
-`shellcheck`, `ruff`, a secret scan, and a check that no file name matches
-a credential pattern.
+CI runs the pinned tools' `validate` workflow: `tools/validate` over the
+sets, `sync-manifests --check`, `check-licenses`, `reuse lint`, `shellcheck`
+over every tracked `.sh` file, and `check-signoff` over the pull request's
+commits; the `skill tests` job runs every skill's tests on Python 3.9 and
+3.12. The repository's `.gitignore` keeps `.env`, `*.pem` and `*.key` files
+out of a commit.
 
 ## Commit style
 
@@ -201,9 +213,12 @@ author; `git commit -s` adds it. The trailer certifies the
 [Developer Certificate of Origin 1.1](https://developercertificate.org/):
 that you wrote the change, or have the right to submit it, under the licence
 the file states. It is a certification, not a cryptographic signature. The
-`validate` workflow checks every commit of a pull request for an
-author-matching sign-off once outside contributions open, with no exemption
-for a bot or a merge commit.
+`validate` workflow refuses a pull request holding a commit without an
+author-matching sign-off, with no exemption for a bot or a merge commit;
+this repository sets the reusable workflow's `enforce-signoff` input, which
+a caller otherwise leaves off. A `Co-Authored-By` trailer names a person who
+also signs off, so a commit does not carry a co-author trailer for a tool or
+a model, which cannot certify the DCO.
 
 ## Pull requests
 

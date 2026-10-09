@@ -1,7 +1,9 @@
 # Tools
 
-Maintainer and user commands for sets. `check-publisher` is implemented; the
-others are not yet.
+Maintainer and user commands for sets. Every command runs from a checkout of
+[ai-tools-assets-tools](https://github.com/dag-node/ai-tools-assets-tools),
+whose `tools/README.md` states each one in full; the table names what each
+does for this repository.
 
 | Command | What it does |
 |---|---|

@@ -1,24 +1,52 @@
 # SPDX-License-Identifier: MIT
-# Checks every pull request and every push to main. Today it checks that the
-# published names agree with publisher.conf; tools/validate joins it when it
-# is implemented.
+# Checks every pull request and every push to develop and main with the
+# reusable workflow from dag-node/ai-tools-assets-tools at a pinned version.
+# The tools run from that version, not from this tree.
+# The tests job runs the tests each skill ships with its scripts.
 name: validate
 
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [develop, main]
 
 permissions:
   contents: read
 
 jobs:
-  # The job name is the status check a ruleset requires on main; renaming it
-  # leaves the requirement waiting for a check that no longer runs.
-  check-publisher:
-    name: check-publisher
-    runs-on: ubuntu-latest
+  # A called job reports its check run as `<this job> / <called job>`. This
+  # job is named for the repository, so its check is
+  # `ai-tools-assets / validate`, the exact context the ruleset on main
+  # requires.
+  ai-tools-assets:
+    uses: dag-node/ai-tools-assets-tools/.github/workflows/validate.yml@e8035d0d0021e2ac8a8050849cb45a35566d11b0 # v1.1.0
+    with:
+      # The sign-off check fails the job here; the reusable workflow reports it alone until a caller sets this.
+      enforce-signoff: true
+
+  # A skill that ships scripts ships their tests under its tests/. Each
+  # directory is discovered on its own, at the Python floor the scripts
+  # are written for and at a current release.
+  tests:
+    name: skill tests (python ${{ matrix.python }})
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        python: ['3.9', '3.12']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Published names agree with publisher.conf
-        run: python3 tools/check-publisher
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Every skill's tests
+        run: |
+          shopt -s nullglob
+          status=0
+          for directory in sets/*/skills/*/tests; do
+            echo "::group::$directory"
+            python3 -m unittest discover -s "$directory" -v || status=1
+            echo "::endgroup::"
+          done
+          exit "$status"

@@ -1,9 +1,17 @@
 # SPDX-License-Identifier: MIT
-# Runs for a set's release tag, <set>/v<semver>. Before anything is built, it
-# checks that publisher.conf names the GitHub owner and URL of the repository
-# the tag is pushed to, so a fork that has not set its own publisher fails here and
-# does not publish under this repository's names. Packaging joins this
-# workflow when tools/build-set is implemented.
+# Releases a set for its tag, <set>/v<semver>, through the reusable
+# set-release workflow from dag-node/ai-tools-assets-tools, pinned at the
+# same commit as validate.yml. That workflow verifies the tag's signature,
+# runs `tools/validate` and `tools/check-publisher --repository`, builds the
+# set, signs the zip, SHA256SUMS and the RPM with the org package-signing
+# key, creates the release, and asks dag-node/rpm to publish the RPM.
+# packaging/README.md lists what a release attaches.
+#
+# The called job runs under this repository's `release` environment,
+# whose deployment policy admits tags `*/v*` and no branch; its secrets
+# reach the job through `secrets: inherit`, since a job that calls
+# a workflow cannot declare an environment. The job is named for the
+# repository, so its check is `ai-tools-assets / release`.
 name: release
 
 on:
@@ -14,11 +22,13 @@ permissions:
   contents: read
 
 jobs:
-  publisher:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: publisher.conf describes this repository
-        env:
-          REPOSITORY: ${{ github.repository }}
-        run: python3 tools/check-publisher --repository "$REPOSITORY"
+  # Pinned by commit rather than by the moving `v1` tag: the called workflow
+  # runs with this repository's signing secrets, so the code it runs changes
+  # only in a reviewed commit here.
+  ai-tools-assets:
+    uses: dag-node/ai-tools-assets-tools/.github/workflows/set-release.yml@e8035d0d0021e2ac8a8050849cb45a35566d11b0 # v1.1.0
+    permissions:
+      contents: write
+    secrets: inherit
+    with:
+      dispatch-rpm: true
