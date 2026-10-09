@@ -22,8 +22,11 @@ permissions:
   contents: read
 
 jobs:
+  # Pinned by commit rather than by the moving `v1` tag: the called workflow
+  # runs with this repository's signing secrets, so the code it runs changes
+  # only in a reviewed commit here.
   ai-tools-assets:
-    uses: dag-node/ai-tools-assets-tools/.github/workflows/set-release.yml@928e30d18e74acbef3177bc78cd52166b29d400c
+    uses: dag-node/ai-tools-assets-tools/.github/workflows/set-release.yml@e8035d0d0021e2ac8a8050849cb45a35566d11b0 # v1.1.0
     permissions:
       contents: write
     secrets: inherit

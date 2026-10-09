@@ -19,7 +19,7 @@ jobs:
   # `ai-tools-assets / validate`, the exact context the ruleset on main
   # requires.
   ai-tools-assets:
-    uses: dag-node/ai-tools-assets-tools/.github/workflows/validate.yml@928e30d18e74acbef3177bc78cd52166b29d400c
+    uses: dag-node/ai-tools-assets-tools/.github/workflows/validate.yml@e8035d0d0021e2ac8a8050849cb45a35566d11b0 # v1.1.0
     with:
       # The sign-off check fails the job here; the reusable workflow reports it alone until a caller sets this.
       enforce-signoff: true
