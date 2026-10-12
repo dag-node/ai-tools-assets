@@ -84,8 +84,8 @@ since a renamed heading breaks a contents line silently.
 
 ## The tool
 
-`scripts/ref-index.py` ships in this skill. `kinds` prints the registry, `new <family>` mints a reftag, `generate` writes
-the index, `where <reftag>` prints the target's live `file:line`, `relink` rewrites every destination
+`scripts/ref-index.py` ships in this skill. `kinds` prints the registry, `new <family>` mints a reftag, `generate`
+writes the index, `where <reftag>` prints the target's live `file:line`, `relink` rewrites every destination
 from where the targets are, and `check` reports a reftag defined twice, an id shared by two kinds, a reference with no
 target or to a target in its own file, a caption with no block after it, a destination that is missing or stale,
 an ordinary link whose file or heading is gone, a retired reftag defined again, and a reftag whose id is malformed:

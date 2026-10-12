@@ -39,11 +39,13 @@ Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
   `AGPL-3.0-only` terms. Every commit to those files in ai-tools-base is
   authored by the maintainer, and the files carry no copyright line, licence
   statement or attribution of another party.
-- The set installs in Claude Code as the plugin `ai-tools-assets-core`, from the
-  repository's marketplace: `/plugin marketplace add dag-node/ai-tools-assets`.
+- The set installs in Claude Code as the plugin `ai-tools-assets-core`,
+  from the repository's marketplace:
+  `/plugin marketplace add dag-node/ai-tools-assets`.
 - The set's skills install in Codex from the same marketplace:
   `codex plugin marketplace add dag-node/ai-tools-assets`.
-- The set installs in Qwen Code from the same marketplace, skills and
-  subagents both: `qwen extensions install dag-node/ai-tools-assets:ai-tools-assets-core`.
+- The set installs in Qwen Code from the same marketplace, skills and subagents
+  both:
+  `qwen extensions install dag-node/ai-tools-assets:ai-tools-assets-core`.
 - The set's skills install in Gemini CLI:
   `gemini skills install https://github.com/dag-node/ai-tools-assets.git --path sets/core/skills --consent`.
