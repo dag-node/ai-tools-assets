@@ -7,6 +7,16 @@ Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-12
+
+### Fixed
+
+- **Release.** core 0.2.1 is the first release of the 0.2.0 changes. The
+  `core/v0.2.0` tag has no GitHub release and no package: its release run
+  stopped at the Fedora 44 signature check, since the release workflow pinned
+  an image digest quay.io no longer serves. The release workflow now calls the
+  ai-tools-assets-tools 1.2.0 commit, which pins the current digest.
+
 ## [0.2.0] - 2026-10-12
 
 ### Changed
