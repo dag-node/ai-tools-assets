@@ -20,8 +20,10 @@
 # paths at <revision>, and reports only what the tree ADDED. It is the sibling of `--kept`. That one asks whether
 # a rewrite kept the claim; this one asks what the rewrite introduced. It exists because doing the comparison by hand is
 # unreliable at any size: findings are two lines each, a shifted line renumbers every finding after it, and a tree
-# reporting hundreds under `--all` buries the two a branch is answerable for. Pairing is by content; see
-# `added_findings`. Source files contribute their comments and docstrings, Markdown and man pages every line.
+# reporting hundreds under `--all` buries the two a branch is answerable for. Pairing is by content, then by check
+# within a file, so a sentence a rename touched is not reported for a finding it already had; see `added_findings`.
+# Source files contribute their comments and docstrings, outside a shell heredoc's body, and Markdown and man pages
+# every line.
 # The patterns match English, so they carry to any codebase.
 #
 # `--kept`: A REWRITE CHANGES THE WORDING, NOT THE CLAIM. Every other check reports how a sentence is written. This one
@@ -74,7 +76,8 @@
 #   unbacked-absolute  the sentence holds an absolute AND no subordinating conjunction, since a
 #                      guard clause is what those conjunctions introduce.
 #   mirrored-clause    a word stem repeats across `rather than` / `instead of`, which is the
-#                      mirror itself; a plain contrast puts different words on each side.
+#                      mirror itself; a plain contrast puts different words on each side. An
+#                      identifier and a code span each read as one word without a stem.
 #   definitional       a head noun repeats across `is not a`, which is the restatement that makes
 #                      the sentence a definition instead of a description.
 #   history            the past-tense markers only. `no longer` describes a current state as often
@@ -105,7 +108,8 @@ import os
 import re
 import subprocess
 import sys
-from collections import Counter
+from collections import Counter, defaultdict
+from difflib import SequenceMatcher
 
 IGNORE_MARKER = "prose-check: ignore"
 # The file marker is read only as the whole content of a comment line, so a document describing it is still checked. It
@@ -304,7 +308,7 @@ CODE_SPAN_HINT = ("mark it as code -- backticks in Markdown, `<c>` in an XML doc
 
 # A sentence opening on a signature (`name <arg>`, `name(`, `some_name:`) or on one of the fragment keys. A prose
 # sentence does not reach the bracket: `The helper <arg>` puts a word between them. The colon form takes an identifier
-# carrying an underscore or a dash (`ai_tools_log:`, `FN-Q2H8:`), since a prose sentence opens on a plain word
+# carrying an underscore or a dash (`ai_tools_log__write:`, `FN-Q2H8:`), since a prose sentence opens on a plain word
 # and a colon as often as a contract does (`Flags: ...`, `Note: ...`).
 CONTRACT_LINE = re.compile(
     r"^(?:[A-Za-z_][\w.-]*\s*\(?\)?\s*[<\[]"
@@ -458,12 +462,29 @@ WORD = re.compile(r"[a-z][a-z-]{3,}")
 MIRROR_WINDOW = 5
 
 
+def stem_words(text):
+    """The words of `text` in order, each a word `WORD` matches or None for an opaque one.
+
+    A token carrying `_` is an identifier, and a span the author marked as code reaches this
+    function as `SPAN_PLACEHOLDER`. Each takes one place in the window and does not yield a stem:
+    split at `_`, `ai_tools_load_operators` matched `load` in the clause across the pivot, and every
+    pair of backticked spans matched each other through the placeholder.
+    """
+    words = []
+    for token in text.lower().split():
+        if "_" in token or SPAN_PLACEHOLDER in token:
+            words.append(None)
+        else:
+            words.extend(WORD.findall(token))
+    return words
+
+
 def stems(text, limit=None):
     """The four-character stems of the words in `text`, optionally the first or last `limit`."""
-    words = WORD.findall(text.lower())
+    words = stem_words(text)
     if limit is not None:
         words = words[-limit:] if limit > 0 else words[:-limit]
-    return {word[:4] for word in words}
+    return {word[:4] for word in words if word}
 
 
 def mirrored(sentence, pivot):
@@ -788,12 +809,56 @@ def source_prose(line, state):
     return (LINE_COMMENT.sub("", line), None) if LINE_COMMENT.match(line) else (None, None)
 
 
+# A shell heredoc's body is data the file writes -- a seeded config header, a test fixture -- so a comment marker in it
+# belongs to that data, and its lines are not the file's prose: a fixture holds an over-width line or a defect
+# on purpose, and the comment filler leaves the body as written. The operator is `<<` or `<<-`, not a here-string's
+# `<<<`, then a word, quoted or not -- the reading of ai-tools-assets-tools' table aligner. One on a comment line, and
+# one no later line closes, open no body: the second is a `<<` in a string or an arithmetic shift.
+HEREDOC = re.compile(r"(?<!<)<<(?!<)-?\s*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1")
+SHELL_SUFFIXES = (".sh", ".bash")
+SHELL_SHEBANG = re.compile(r"^#!.*\b(?:ba|da|k|z)?sh\b")
+
+
+def heredoc_lines(source):
+    """The (path, line number) of each line of `source` inside a shell heredoc body.
+
+    A path is shell where its name ends in `.sh` or `.bash`, or where its first line is a shell
+    shebang.
+    """
+    by_path = {}
+    for path, number, line in source:
+        by_path.setdefault(path, []).append((number, line))
+    body = set()
+    for path, lines in by_path.items():
+        if path == MESSAGE or is_prose_file(path):
+            continue
+        if not (path.endswith(SHELL_SUFFIXES)
+                or (lines[0][0] == 1 and SHELL_SHEBANG.match(lines[0][1]))):
+            continue
+        delimiter = None
+        for index, (number, line) in enumerate(lines):
+            if delimiter is not None:
+                if line.strip() == delimiter:
+                    delimiter = None
+                else:
+                    body.add((path, number))
+                continue
+            match = HEREDOC.search(line)
+            if (match and not line.lstrip().startswith("#")
+                    and any(later.strip() == match.group(2) for _, later in lines[index + 1:])):
+                delimiter = match.group(2)
+    return body
+
+
 def prose_lines(source):
     """Yield (path, line number, raw line, prose or None), holding block state per file.
 
     A document or man page contributes every line. A commit message inverts the source rule -- its
-    body is prose and its `#` lines are the template git strips.
+    body is prose and its `#` lines are the template git strips. A line of a shell heredoc's body
+    does not carry any prose.
     """
+    source = list(source)
+    data = heredoc_lines(source)
     last_path, state = None, None
     for path, number, line in source:
         if path != last_path:
@@ -802,6 +867,8 @@ def prose_lines(source):
             yield path, number, line, None if line.lstrip().startswith("#") else line
         elif is_prose_file(path):
             yield path, number, line, line
+        elif (path, number) in data:
+            yield path, number, line, None
         else:
             text, state = source_prose(line, state)
             yield path, number, line, text
@@ -1052,22 +1119,45 @@ def added_findings(current, baseline):
 
     THE PAIRING IS BY CONTENT, NOT BY POSITION: an edit renumbers every line after it, so pairing
     on a line number reports each shifted finding as new -- the failure this mode exists to remove.
-    The key is (path, check, token, sentence), counted, so a sentence appearing twice in a file
-    is matched twice.
+    The first pass keys on (path, check, token, sentence), counted, so a sentence appearing twice
+    in a file is matched twice.
 
-    A sentence that was EDITED and still trips therefore reports, because its text no longer
-    matches the one it replaced. That is the wanted direction: the wording a branch leaves behind
-    is the wording it is answerable for.
+    The second pass pairs what the first left within one (path, check). A sentence an edit reworded
+    -- an identifier renamed across the tree, a clause added -- no longer matches its old text, and
+    still carries the finding the revision had, so it pairs with an unpaired revision finding of
+    the same check, the most similar sentence first. A file therefore reports as many findings
+    of a check as it holds beyond the revision's count, and those are the sentences least like any
+    the revision held.
     """
+    current = list(current)
     unclaimed = Counter((path, name, token, text)
                         for path, _, name, token, _, text in baseline)
-    for finding in current:
+    leftover = []
+    for index, finding in enumerate(current):
         path, _, name, token, _, text = finding
         key = (path, name, token, text)
         if unclaimed[key]:
             unclaimed[key] -= 1
         else:
-            yield finding
+            leftover.append(index)
+
+    revision_texts = defaultdict(list)
+    for (path, name, _, text), count in unclaimed.items():
+        revision_texts[(path, name)].extend([text] * count)
+    paired = set()
+    for (path, name), texts in revision_texts.items():
+        candidates = [index for index in leftover if current[index][0] == path
+                      and current[index][2] == name]
+        scored = sorted((-SequenceMatcher(None, current[index][5], text).ratio(), index, slot)
+                        for index in candidates for slot, text in enumerate(texts))
+        used = set()
+        for _, index, slot in scored:
+            if index not in paired and slot not in used:
+                paired.add(index)
+                used.add(slot)
+    for index in leftover:
+        if index not in paired:
+            yield current[index]
 
 
 # A span closes on the run of backticks that OPENED it, which is how a span holds a backtick of its own (\x60\x60 \x60
@@ -1094,8 +1184,9 @@ LINK_TARGET = re.compile(r"\]\([^)]*\)|\]\[[^\]]*\]|^\s*\[[^\]]+\]:\s*\S+")
 LINK_BLANK = "](--)"
 # The placeholder a blanked span leaves behind. A word rather than a dash run: at an edge the span was GLUED to there
 # are no two words to keep apart, so the placeholder joins the token beside it into one, and a dash there hands
-# the option check a `--s` (\x60cat\x60s) or a `-macro` (\x60an\x60-macro) to report.
-SPAN_PLACEHOLDER = "code"
+# the option check a `--s` (\x60cat\x60s) or a `-macro` (\x60an\x60-macro) to report. It is a word no English sentence
+# holds, so `stem_words` can tell a span from the author's own `code`.
+SPAN_PLACEHOLDER = "codespan"
 
 
 def author_prose(path, text):
@@ -1495,8 +1586,8 @@ def main():
         print(f"    {text[:110]}")
     if count:
         if args.new is not None:
-            print(f"\n{count} finding(s) these paths add against {args.new}. "
-                  f"A sentence edited and still reporting is one of them.")
+            print(f"\n{count} finding(s) these paths add against {args.new}, "
+                  f"counted per file and check.")
         else:
             print(f"\n{count} finding(s). See the ai-tools-technical-writing skill; "
                   f"mark a deliberate example with '{IGNORE_MARKER}'.")

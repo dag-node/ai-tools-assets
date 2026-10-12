@@ -13,7 +13,7 @@ skills/<name>/SKILL.md      one directory per skill
 agents/<name>.md            one file per subagent
 ```
 
-A skill or subagent follows the [asset format](../../CONTRIBUTING.md#asset-format),
-and its name starts with `ai-tools-`, the prefix of this set. `agents/` holds
-subagent files alone: Claude Code loads every `.md` file in a plugin's
-`agents/` as a subagent.
+A skill or subagent follows the [asset
+format](../../CONTRIBUTING.md#asset-format), and its name starts
+with `ai-tools-`, the prefix of this set. `agents/` holds subagent files alone:
+Claude Code loads every `.md` file in a plugin's `agents/` as a subagent.

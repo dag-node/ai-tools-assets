@@ -1,7 +1,7 @@
 # Running the checker
 
-`scripts/prose-check.py` ships in this skill and reports the checkable items of the final pass. This file states its modes,
-its markers, and the widths it holds a file to; the rules it checks are the standard's.
+`scripts/prose-check.py` ships in this skill and reports the checkable items of the final pass. This file states its
+modes, its markers, and the widths it holds a file to; the rules it checks are the standard's.
 
 ```bash
 python3 scripts/prose-check.py <file>...
@@ -66,7 +66,8 @@ python3 scripts/prose-check.py --config-header <file>...
 ```
 
 **Where a line breaks is the formatter's, not the writer's.** Write the prose and let a formatter wrap it at the column
-`--print-width` reports; these checks hold the width alone.
+`--print-width` reports; these checks hold the width alone. A repository that ships a formatter names it in its own
+`CLAUDE.md`, and the package `ai-tools-assets-tools` installs one.
 
 **Table cells must line up.** After editing a table inside a comment, align its cells: a column is as wide as its widest
 cell, so a cell too wide for its column widens every row. Where a project ships a table formatter, those decisions —
@@ -78,7 +79,8 @@ column widths, number right-alignment, heading centering, rule-line placement �
 contributes every line; anything else contributes its comments and docstrings. A path the extension rule does not
 recognize is read as source, so a **document copy whose name lost its extension** keeps only its `#` headings
 and reports zero findings for a file whose body the run never read — and zero findings reads as clean. Pass `--prose`
-for such a copy, `--source` for the reverse.
+for such a copy, `--source` for the reverse. A shell heredoc's body is data the file writes, a fixture or a seeded
+header, so its lines are not read.
 
 **`--new <revision>` reports only what the paths add**, so a pre-existing finding does not mask a new one. It is
 the sibling of `--kept`: that one asks whether a rewrite kept the claim, this one asks what the rewrite introduced. It
@@ -88,8 +90,9 @@ composes with `--all` and `--wrap`.
 python3 scripts/prose-check.py --all --new develop <file>...
 ```
 
-Pairing is by content rather than by line, because an edit renumbers every finding after it. Two consequences to expect:
-a sentence that was **edited and still reports** counts as new, which is the wanted direction — the wording a branch
-leaves behind is the wording it is answerable for — and a file the revision does not hold reports every finding in it.
+Pairing is by content rather than by line, because an edit renumbers every finding after it, and then by check within
+a file, because a rename or a reworded clause changes a sentence without adding a finding to it. A file reports as many
+findings of a check as it holds beyond the revision's count, naming the sentences least like any the revision held,
+and a file the revision does not hold reports every finding in it.
 Do not do this comparison by hand. Findings are two lines each, line numbers shift, and a tree reporting hundreds
 under `--all` buries the two that belong to the branch.

@@ -7,6 +7,31 @@ Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-12
+
+### Changed
+
+- **`--new` pairing.** `prose-check.py --new <revision>` pairs findings by
+  check within a file once it has paired them by content. A sentence that a
+  rename or a reworded clause touched is not reported for a finding it already
+  had. A file reports as many findings of a check as it holds beyond the
+  revision's count.
+- **Formatter pointer.** The writing skill's `references/checks.md` states that
+  a repository names its formatter in its own `CLAUDE.md`, and that the package
+  `ai-tools-assets-tools` installs one.
+
+### Fixed
+
+- **Identifiers and code spans.** `prose-check.py` reads a token carrying `_`,
+  and a span marked as code, as one word without a stem. The `--all` checks
+  `mirrored-clause` and `definitional` stop matching a fragment of an
+  identifier such as `ai_tools_load_operators`, or a pair of backticked spans,
+  across the pivot.
+- **Shell heredocs.** `prose-check.py` does not read the body of a shell
+  heredoc, which is data the file writes, such as a test fixture or a seeded
+  config header. Its `#` lines reported findings, and `--wrap` reported them
+  over the column.
+
 ## [0.1.0] - 2026-10-09
 
 ### Added
@@ -24,11 +49,13 @@ Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
   `AGPL-3.0-only` terms. Every commit to those files in ai-tools-base is
   authored by the maintainer, and the files carry no copyright line, licence
   statement or attribution of another party.
-- The set installs in Claude Code as the plugin `ai-tools-assets-core`, from the
-  repository's marketplace: `/plugin marketplace add dag-node/ai-tools-assets`.
+- The set installs in Claude Code as the plugin `ai-tools-assets-core`,
+  from the repository's marketplace:
+  `/plugin marketplace add dag-node/ai-tools-assets`.
 - The set's skills install in Codex from the same marketplace:
   `codex plugin marketplace add dag-node/ai-tools-assets`.
-- The set installs in Qwen Code from the same marketplace, skills and
-  subagents both: `qwen extensions install dag-node/ai-tools-assets:ai-tools-assets-core`.
+- The set installs in Qwen Code from the same marketplace, skills and subagents
+  both:
+  `qwen extensions install dag-node/ai-tools-assets:ai-tools-assets-core`.
 - The set's skills install in Gemini CLI:
   `gemini skills install https://github.com/dag-node/ai-tools-assets.git --path sets/core/skills --consent`.
