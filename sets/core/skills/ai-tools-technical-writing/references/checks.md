@@ -1,7 +1,7 @@
 # Running the checker
 
-`scripts/prose-check.py` ships in this skill and reports the checkable items of the final pass. This file states its modes,
-its markers, and the widths it holds a file to; the rules it checks are the standard's.
+`scripts/prose-check.py` ships in this skill and reports the checkable items of the final pass. This file states its
+modes, its markers, and the widths it holds a file to; the rules it checks are the standard's.
 
 ```bash
 python3 scripts/prose-check.py <file>...

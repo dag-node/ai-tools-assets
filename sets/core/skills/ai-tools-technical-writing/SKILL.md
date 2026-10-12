@@ -455,8 +455,8 @@ covered them reports where you looked, not what is there.
 [ref-section-e8b7](references/rewriting.md#ref-section-e8b7), and it applies to a first draft's own findings as much
 as to a rewrite pass.
 
-**Run the checkable ones.** `scripts/prose-check.py` ships in this skill and reports items 2, 3, 4, 5, 7, 9, 11, 12 and 14
-plus the `does not` rule, so the pass is a command rather than an act of attention:
+**Run the checkable ones.** `scripts/prose-check.py` ships in this skill and reports items 2, 3, 4, 5, 7, 9, 11, 12
+and 14 plus the `does not` rule, so the pass is a command rather than an act of attention:
 
 ```bash
 python3 scripts/prose-check.py <file>...
