@@ -7,6 +7,21 @@ Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 
 ## [Unreleased]
 
+### Changed
+
+- `prose-check.py` reads a token carrying `_`, and a span marked as code, as
+  one word without a stem. The `--all` checks `mirrored-clause` and
+  `definitional` stop reporting a sentence whose only repeat across the pivot
+  is a fragment of an identifier such as `ai_tools_load_operators`, or a pair
+  of backticked spans.
+- `prose-check.py --new <revision>` pairs findings by check within a file
+  after pairing them by content. A sentence a rename or a reworded clause
+  touched is not reported for a finding it already had, and a file reports
+  as many findings of a check as it holds beyond the revision's count.
+- The writing skill's `references/checks.md` states that a repository names
+  its formatter in its own `CLAUDE.md`, and that the package
+  `ai-tools-assets-tools` installs one.
+
 ## [0.1.0] - 2026-10-09
 
 ### Added
