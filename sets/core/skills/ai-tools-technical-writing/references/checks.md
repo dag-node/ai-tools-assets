@@ -79,7 +79,8 @@ column widths, number right-alignment, heading centering, rule-line placement â€
 contributes every line; anything else contributes its comments and docstrings. A path the extension rule does not
 recognize is read as source, so a **document copy whose name lost its extension** keeps only its `#` headings
 and reports zero findings for a file whose body the run never read â€” and zero findings reads as clean. Pass `--prose`
-for such a copy, `--source` for the reverse.
+for such a copy, `--source` for the reverse. A shell heredoc's body is data the file writes, a fixture or a seeded
+header, so its lines are not read.
 
 **`--new <revision>` reports only what the paths add**, so a pre-existing finding does not mask a new one. It is
 the sibling of `--kept`: that one asks whether a rewrite kept the claim, this one asks what the rewrite introduced. It
