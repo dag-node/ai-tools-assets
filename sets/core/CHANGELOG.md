@@ -18,6 +18,9 @@ Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
   after pairing them by content. A sentence a rename or a reworded clause
   touched is not reported for a finding it already had, and a file reports
   as many findings of a check as it holds beyond the revision's count.
+- `prose-check.py` does not read the body of a shell heredoc, which is data
+  the file writes, such as a test fixture or a seeded config header. A `#` line
+  in it reported findings, and `--wrap` reported it over the column.
 - The writing skill's `references/checks.md` states that a repository names
   its formatter in its own `CLAUDE.md`, and that the package
   `ai-tools-assets-tools` installs one.

@@ -317,6 +317,21 @@ class ExitStatusTest(ProseCheckTestCase):
         self.assertEqual(rc, 0, f"TEST-PC-16-exit-clean: exits 0 when clean; output: {out}")
 
 
+class HeredocTest(ProseCheckTestCase):
+    def test_a_heredoc_body_is_data_and_the_comments_around_it_are_read(self) -> None:
+        body = "# There is nothing left to check, in a line a fixture runs " + "long " * 25 + "on purpose."
+        self.assertCases([
+            ("nothing", "TEST-PC-190-heredoc-after.sh", "x=1", "cat > out <<'EOF'", body, "EOF",
+             "# There is nothing left to check."),
+            # An arithmetic shift no later line closes, and an operator on a comment line, open no body.
+            ("nothing", "TEST-PC-191-shift.sh", "y=$(( 1 << SHIFT ))", "# There is nothing left to check."),
+            ("nothing", "TEST-PC-192-commented.sh", "# cat <<EOF", "# There is nothing left to check.", "EOF"),
+        ], [
+            ("TEST-PC-193-heredoc-body.sh", "x=1", "cat > out <<-EOF", body, "\tEOF"),
+            ("TEST-PC-194-heredoc-shebang", "#!/usr/bin/env bash", "cat > out << \"END\"", body, "END"),
+        ], options=("--wrap",))
+
+
 class ReadModeTest(ProseCheckTestCase):
     def test_the_extension_decides_the_read_mode_and_the_options_override_it(self) -> None:
         rc, out = self.run_check(self.fixture("TEST-PC-17-source-comment.conf", "KEY=value",

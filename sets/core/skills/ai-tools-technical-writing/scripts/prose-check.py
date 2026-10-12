@@ -22,7 +22,8 @@
 # unreliable at any size: findings are two lines each, a shifted line renumbers every finding after it, and a tree
 # reporting hundreds under `--all` buries the two a branch is answerable for. Pairing is by content, then by check
 # within a file, so a sentence a rename touched is not reported for a finding it already had; see `added_findings`.
-# Source files contribute their comments and docstrings, Markdown and man pages every line.
+# Source files contribute their comments and docstrings, outside a shell heredoc's body, and Markdown and man pages
+# every line.
 # The patterns match English, so they carry to any codebase.
 #
 # `--kept`: A REWRITE CHANGES THE WORDING, NOT THE CLAIM. Every other check reports how a sentence is written. This one
@@ -808,12 +809,56 @@ def source_prose(line, state):
     return (LINE_COMMENT.sub("", line), None) if LINE_COMMENT.match(line) else (None, None)
 
 
+# A shell heredoc's body is data the file writes -- a seeded config header, a test fixture -- so a comment marker in it
+# belongs to that data, and its lines are not the file's prose: a fixture holds an over-width line or a defect
+# on purpose, and the comment filler leaves the body as written. The operator is `<<` or `<<-`, not a here-string's
+# `<<<`, then a word, quoted or not -- the reading of ai-tools-assets-tools' table aligner. One on a comment line, and
+# one no later line closes, open no body: the second is a `<<` in a string or an arithmetic shift.
+HEREDOC = re.compile(r"(?<!<)<<(?!<)-?\s*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1")
+SHELL_SUFFIXES = (".sh", ".bash")
+SHELL_SHEBANG = re.compile(r"^#!.*\b(?:ba|da|k|z)?sh\b")
+
+
+def heredoc_lines(source):
+    """The (path, line number) of each line of `source` inside a shell heredoc body.
+
+    A path is shell where its name ends in `.sh` or `.bash`, or where its first line is a shell
+    shebang.
+    """
+    by_path = {}
+    for path, number, line in source:
+        by_path.setdefault(path, []).append((number, line))
+    body = set()
+    for path, lines in by_path.items():
+        if path == MESSAGE or is_prose_file(path):
+            continue
+        if not (path.endswith(SHELL_SUFFIXES)
+                or (lines[0][0] == 1 and SHELL_SHEBANG.match(lines[0][1]))):
+            continue
+        delimiter = None
+        for index, (number, line) in enumerate(lines):
+            if delimiter is not None:
+                if line.strip() == delimiter:
+                    delimiter = None
+                else:
+                    body.add((path, number))
+                continue
+            match = HEREDOC.search(line)
+            if (match and not line.lstrip().startswith("#")
+                    and any(later.strip() == match.group(2) for _, later in lines[index + 1:])):
+                delimiter = match.group(2)
+    return body
+
+
 def prose_lines(source):
     """Yield (path, line number, raw line, prose or None), holding block state per file.
 
     A document or man page contributes every line. A commit message inverts the source rule -- its
-    body is prose and its `#` lines are the template git strips.
+    body is prose and its `#` lines are the template git strips. A line of a shell heredoc's body
+    does not carry any prose.
     """
+    source = list(source)
+    data = heredoc_lines(source)
     last_path, state = None, None
     for path, number, line in source:
         if path != last_path:
@@ -822,6 +867,8 @@ def prose_lines(source):
             yield path, number, line, None if line.lstrip().startswith("#") else line
         elif is_prose_file(path):
             yield path, number, line, line
+        elif (path, number) in data:
+            yield path, number, line, None
         else:
             text, state = source_prose(line, state)
             yield path, number, line, text
