@@ -375,6 +375,20 @@ class ClosedSetCountTest(ProseCheckTestCase):
                 self.assertOmits("closed-set-count", out, f"{case_id(name)}: {description}")
 
 
+class MirroredClauseTest(ProseCheckTestCase):
+    def test_an_identifier_and_a_code_span_each_read_as_one_word_without_a_stem(self) -> None:
+        self.assertCases([
+            # The controls: a stem repeated across the pivot in the author's own words is the mirror.
+            ("mirrored-clause", "TEST-PC-186-mirror-control.sh", "x=1",
+             "# Reads the load map rather than the load of each file."),
+            ("mirrored-clause", "TEST-PC-187-mirror-control.md", "Use the cache rather than caching it again."),
+        ], [
+            ("TEST-PC-188-mirror-identifier.sh", "x=1",
+             "# Reads ai_tools_load_operators rather than the load of each file."),
+            ("TEST-PC-189-mirror-code-spans.md", "Use `alpha` rather than `beta` for the key."),
+        ], options=("--all",))
+
+
 class MessageTest(ProseCheckTestCase):
     def test_a_commit_message_is_checked(self) -> None:
         msg = self.fixture("TEST-PC-40-message.txt", "fix(x): state what changed", "",
@@ -497,12 +511,28 @@ class NewTest(GitRepositoryTestCase):
         self.assertOmits("never", added, "TEST-PC-39b-new-shifted: a finding that only moved down the file")
         self.assertOmits("nothing", added, "TEST-PC-39c-new-shifted-second: the second one the insert displaced")
 
-    def test_a_reworded_sentence_that_still_reports_is_new(self) -> None:
+    def test_a_reworded_sentence_keeps_the_finding_it_had(self) -> None:
         self.write("new.md", self.INSERTED + "The service account is never an administrator.\n"
                    "A claim adds nothing here.\nThe helper grants no access.\n")
         added = self.checker_output("--all", "--new", "HEAD", "new.md")
-        self.assertIn("The service account", added,
-                      "TEST-PC-39d-new-edited: a sentence reworded and still reporting counts as new")
+        self.assertIn("grants no access", added, "TEST-PC-39d-new-edited: the figure the edit introduced reports")
+        self.assertOmits("The service account", added,
+                         "TEST-PC-39d-new-edited: a sentence reworded and reporting the same check is not new")
+
+    def test_a_renamed_identifier_adds_no_finding(self) -> None:
+        self.commit("rename.md", "The ai_tools_log helper never writes the file.\n")
+        self.write("rename.md", "The ai_tools_log__write helper never writes the file.\n")
+        added = self.checker_output("--all", "--new", "HEAD", "rename.md")
+        self.assertEqual(added, "", f"TEST-PC-39g-new-rename: a rename re-reported its sentence's findings: {added}")
+
+    def test_a_check_beyond_the_revisions_count_reports_the_new_sentence(self) -> None:
+        self.write("new.md", "The service account is never an administrator.\n"
+                   "A claim adds nothing here.\nThe daemon never restarts the unit.\n")
+        added = self.checker_output("--all", "--new", "HEAD", "new.md")
+        self.assertIn("The daemon never restarts", added,
+                      "TEST-PC-39h-new-count: a second finding of a check the file had reports")
+        self.assertOmits("The service account", added,
+                         "TEST-PC-39h-new-count: the reworded sentence pairs with the finding it had")
 
     def test_a_path_the_revision_lacks_reports_every_finding(self) -> None:
         self.write("fresh.md", "The helper grants no access.\n")

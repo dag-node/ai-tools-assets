@@ -83,5 +83,6 @@ Two points about running the checks:
   so `--kept <rev>` reports only the findings belonging to the part in hand, rather than every change since the branch
   point.
 - **To see what the edit itself added, use `--new <revision>` rather than comparing two runs.** It pairs findings
-  by content, where a line-wise comparison of two runs treats every finding that merely moved as new. [Running
+  by content and then by check within a file, where a line-wise comparison of two runs treats every finding that
+  merely moved as new. [Running
   the checker](checks.md) has the modes.
