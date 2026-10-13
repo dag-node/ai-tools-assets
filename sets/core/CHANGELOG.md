@@ -9,6 +9,13 @@ Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 
 ### Fixed
 
+- **Licence texts are not read.** `prose-check.py` does not read a file named
+  `LICENSE`, `LICENCE` or `COPYING`, with any suffix, or a file under
+  `LICENSES/`, and `--print-width` reports it as the kind `license`, which
+  a formatter skips. It read a `LICENSE.md` as a document and reported the
+  publisher's wording, and reported a plain-text licence as `source`, the kind
+  a formatter fills.
+
 - **`definitional` reads the noun the pivot opens on.** The `--all` check
   `definitional` reports `is not a` only where the word after the article
   repeats a word of the subject's own clause, as in `a control the system can
