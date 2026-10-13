@@ -308,6 +308,18 @@ class SuppressionTest(ProseCheckTestCase):
         rc, out = self.run_check("TEST-PC-144-binary.webp")
         self.assertEqual((rc, out), (0, ""), f"TEST-PC-144-binary: expected no finding; rc {rc}, output: {out}")
 
+    def test_a_licence_text_is_not_read_by_its_name(self) -> None:
+        # `--prose` reads every file whole, so a licence text is silent by its name and not by the comment-only reading
+        # a `.txt` file otherwise takes. A lower-case `license.md` is a document about licensing, and is read.
+        licence = ("Permission is hereby granted, free of charge.", "There is nothing left to check.")
+        self.assertCases([
+            ("nothing", "docs/TEST-PC-217-license.md", *licence),
+        ], [
+            ("TEST-PC-214-licence/LICENSE.md", *licence),
+            ("TEST-PC-215-licence/COPYING", *licence),
+            ("TEST-PC-216-licence/LICENSES/MIT.txt", *licence),
+        ], options=("--prose",))
+
 
 class ExitStatusTest(ProseCheckTestCase):
     def test_exit_status(self) -> None:
@@ -638,6 +650,9 @@ class PrintWidthTest(ProseCheckTestCase):
             ("TEST-PC-151-width-generated", "-", "generated",
              [self.fixture("TEST-PC-151-width-generated.md", "<!-- prose-check: ignore-file -->", "Copied text.")]),
             ("TEST-PC-152-width-binary", "-", "binary", ["TEST-PC-144-binary.webp"]),
+            # A formatter skips a kind it does not fill, so it leaves a licence text as written.
+            ("TEST-PC-218-width-licence", "-", "license", [self.fixture("LICENSE.md", "Copied text.")]),
+            ("TEST-PC-219-width-licences-dir", "-", "license", [self.fixture("LICENSES/MIT.txt", "Copied text.")]),
             ("TEST-PC-153-width-override-document", "60", "document",
              ["--width", "60", "TEST-PC-145-width-document.md"]),
             ("TEST-PC-154-width-override-source", "60", "source", ["--width", "60", "TEST-PC-148-width-source.sh"]),

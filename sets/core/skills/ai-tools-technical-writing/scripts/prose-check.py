@@ -101,7 +101,9 @@
 # is not read at all, which is how a GENERATED file whose text is copied from elsewhere stays out of the report: its
 # findings name prose that file cannot fix. The file marker is read only as a whole line, so a document describing
 # either marker is still checked. A file holding a NUL byte in its first 8 KiB is binary and is not read either: read
-# as source it yields findings off compressed bytes.
+# as source it yields findings off compressed bytes. Nor is a licence text, known by its name (`LICENSE`, `COPYING`,
+# a file under `LICENSES/`): its wording is the publisher's, and `--print-width` reports it as a kind of its own,
+# so a formatter does not fill it.
 
 import argparse
 import os
@@ -144,6 +146,22 @@ def ignored_file(path):
             found = False
         _ignore_file_cache[path] = found
     return _ignore_file_cache[path]
+
+
+# The names a licence text ships under: `LICENSE`, `LICENCE` or `COPYING` with any suffix, and REUSE's `LICENSES/`
+# directory. The stem is upper-case only, so a module named `license.py` is still read.
+LICENSE_NAME = re.compile(r"(?:LICEN[CS]E|COPYING)(?:[.-][\w.-]+)?")
+
+
+def is_license_text(path):
+    """True when `path` is named as a licence text, or sits in a `LICENSES` directory."""
+    parts = os.path.normpath(path).split(os.sep)
+    return "LICENSES" in parts[:-1] or bool(LICENSE_NAME.fullmatch(parts[-1]))
+
+
+def unread_file(path):
+    """True when `path` is not read: a licence text, or a file carrying the ignore-file marker."""
+    return is_license_text(path) or ignored_file(path)
 
 # Any verb before `no`, rather than a list of them: an enumerated list finds only the verbs whoever wrote it thought
 # of, and this construction takes every transitive verb in the language. A particle may sit between the verb
@@ -1441,6 +1459,7 @@ def document_line_findings(source, width):
 #
 #   missing    the path cannot be read; the run exits 1
 #   binary     a NUL byte in the first 8 KiB, so the file is not read
+#   license    a licence text by its name, so the file is not read
 #   generated  the ignore-file marker on a comment line, so the file is not read
 #   header     under `--config-header`: every line, at HEADER_WIDTH
 #   man        a man page: left to roff
@@ -1449,7 +1468,7 @@ def document_line_findings(source, width):
 #
 # `--width` overrides the column of every measured kind, as it does for the checks; `--prose` and `--source` decide
 # between the last two, as they do for the reading.
-PRINT_WIDTH_KINDS = ("missing", "binary", "generated", "header", "man", "document", "source")
+PRINT_WIDTH_KINDS = ("missing", "binary", "license", "generated", "header", "man", "document", "source")
 
 
 def width_of(path, width, header):
@@ -1458,6 +1477,8 @@ def width_of(path, width, header):
         return None, "missing"
     if is_binary_file(path):
         return None, "binary"
+    if is_license_text(path):
+        return None, "license"
     if ignored_file(path):
         return None, "generated"
     if header:
@@ -1547,7 +1568,7 @@ def main():
     if args.kept is not None:
         count = 0
         for path, kind, detail, context in kept_findings(args.kept):
-            if ignored_file(path):
+            if unread_file(path):
                 continue
             count += 1
             print(f"{path}: {kind} [{detail}] -- {KEPT_HINTS[kind]}")
@@ -1579,7 +1600,7 @@ def main():
         count = 0
         width = args.width if args.width is not None else HEADER_WIDTH
         for path, number, name, token, hint, text in header_findings(args.paths, width):
-            if ignored_file(path):
+            if unread_file(path):
                 continue
             count += 1
             print(f"{path}:{number}: {name} [{token}] -- {hint}")
@@ -1597,14 +1618,14 @@ def main():
                   for number, line in enumerate(open(args.message, errors="ignore"), 1))
     else:
         source = file_lines(args.paths)
-    # Read twice -- once as sentences, once as lines -- so the source is held rather than streamed, and an ignore-file
-    # path is dropped here, which covers every reading mode at once.
-    source = [item for item in source if not ignored_file(item[0])]
+    # Read twice -- once as sentences, once as lines -- so the source is held rather than streamed, and an unread path
+    # is dropped here, which covers every reading mode at once.
+    source = [item for item in source if not unread_file(item[0])]
 
     reported = selected_findings(source, checks, args.width, args.wrap)
     if args.new is not None:
         baseline = [item for item in revision_lines(args.paths, args.new)
-                    if not ignored_file(item[0])]
+                    if not unread_file(item[0])]
         reported = added_findings(
             list(reported), selected_findings(baseline, checks, args.width, args.wrap))
 
