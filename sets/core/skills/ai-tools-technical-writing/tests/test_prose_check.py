@@ -404,6 +404,28 @@ class MirroredClauseTest(ProseCheckTestCase):
         ], options=("--all",))
 
 
+class DefinitionalTest(ProseCheckTestCase):
+    def test_the_noun_after_the_pivot_restating_its_subject_is_the_figure(self) -> None:
+        self.assertCases([
+            ("definitional", "TEST-PC-195-definitional.md", "A control the system can decline is not a control."),
+            # The subject's noun opens ten words before the pivot, beyond the mirror check's window.
+            ("definitional", "TEST-PC-196-definitional-far-subject.md",
+             "Exempts no cgroup, because a stop path the monitored system can put itself outside of is not a stop path."),
+            ("definitional", "TEST-PC-197-definitional-intensifier.md", "A check that cannot fail is not a real check."),
+        ], [
+            # N13: the outcomes of a file-type test, where `directory` repeats from an earlier clause.
+            ("TEST-PC-198-definitional-other-clause.sh", "#!/usr/bin/env bash",
+             "# Returns 0 without a line for an absent retired directory, and 1 when <live_root>/retired is a symlink,",
+             "# is not a directory, or its listing fails, so a caller tells a directory it could not read from one",
+             "# that does not hold a copy.",
+             "x=1"),
+            ("TEST-PC-199-definitional-modifier.md",
+             "Returns 1 for a key outside the table or a name that is not a plain name once the prefix is added."),
+            ("TEST-PC-200-definitional-dash.md",
+             "A pid that has already exited is not an error -- that is the outcome being aimed at."),
+        ], options=("--all",))
+
+
 class MessageTest(ProseCheckTestCase):
     def test_a_commit_message_is_checked(self) -> None:
         msg = self.fixture("TEST-PC-40-message.txt", "fix(x): state what changed", "",
