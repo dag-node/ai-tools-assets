@@ -101,7 +101,7 @@ invariant traces to a mechanism in a rule; **no fact is duplicated
 across layers**; no doc contradicts the code.
 
 **6 — Hand off.** Return: files created/changed; the invariant list for human
-ratification; the **rewrite list** (code that needs to become self-descriptive,
+approval; the **rewrite list** (code that needs to become self-descriptive,
 with docs:code evidence); decisions-not-in-code for memory; and any
 contradiction that needs a human decision. Do not fabricate to fill a gap —
 name it.
