@@ -78,8 +78,8 @@
 #   mirrored-clause    a word stem repeats across `rather than` / `instead of`, which is the
 #                      mirror itself; a plain contrast puts different words on each side. An
 #                      identifier and a code span each read as one word without a stem.
-#   definitional       a head noun repeats across `is not a`, which is the restatement that makes
-#                      the sentence a definition instead of a description.
+#   definitional       the noun `is not a` opens on repeats a word of the clause before it, which is
+#                      the restatement that makes the sentence a definition instead of a description.
 #   history            the past-tense markers only. `no longer` describes a current state as often
 #                      as a change, so it is left to the reader.
 #
@@ -501,6 +501,35 @@ def mirrored(sentence, pivot):
     return match if left & right else None
 
 
+# A definition restates its subject's noun as the noun the pivot opens on: `a control the system can decline is not
+# a control`. A word between the article and that noun names a different kind of thing, which is a description --
+# `a name that is not a plain name` states what a validator refuses -- so the check compares the word right after
+# the article, with an intensifier read past (`is not a real check`), against the subject's clause. A comma,
+# a semicolon, a colon or a spaced dash closes a clause, and a noun beyond one belongs to another: `an absent directory,
+# and 1 when the path is a symlink, is not a directory` lists the outcomes of a test. A head word under four letters,
+# an identifier and a code span are not compared. A subject holding a comma list is cut at its last comma, so `a control
+# the system can decline, disable, or route around is not a control` is not reported.
+#
+# Measured over ai-tools-base at core 0.2.1: 22 findings, 4 of them the figure. The clause bound alone leaves 10, all 4
+# among them; the head word leaves 5, all 4 among them. The whole clause is compared, not the mirror check's five
+# words: `a stop path the monitored system can put itself outside of is not a stop path` opens its subject ten words
+# back.
+CLAUSE_BOUNDARY = re.compile(r"[,;:]|\s(?:--|—|–)\s")
+INTENSIFIER = re.compile(r"\W*(?:real|true|genuine|proper|actual|meaningful|working)\W*", re.I)
+
+
+def definitional(sentence):
+    """True when the noun `is not a` opens on repeats a word of the clause before the pivot."""
+    match = DEFINITIONAL_PIVOT.search(sentence)
+    if not match:
+        return None
+    following = [word for word in sentence[match.end():].split()[:3] if not INTENSIFIER.fullmatch(word)]
+    head = stem_words(following[0])[:1] if following else []
+    if not head or head[0] is None:
+        return None
+    return match if head[0][:4] in stems(CLAUSE_BOUNDARY.split(sentence[:match.start()])[-1]) else None
+
+
 def unbacked_absolute(sentence):
     """An absolute in a sentence with no subordinating conjunction to hang a guard on."""
     match = ABSOLUTE.search(sentence)
@@ -566,7 +595,7 @@ def closed_set_count(sentence):
 EXTRA_CHECKS = [
     ("mirrored-clause", lambda s: mirrored(s, MIRROR_PIVOT),
      "state the fact once, in one direction"),
-    ("definitional", lambda s: mirrored(s, DEFINITIONAL_PIVOT), "describe the mechanism"),
+    ("definitional", definitional, "describe the mechanism"),
     ("unbacked-absolute", unbacked_absolute, "name the guard in the same sentence"),
     ("fronted-quantifier-inflected", FRONTED_QUANTIFIER_INFLECTED, None),  # hint from suggest()
     ("vague-verb", vague_verb, "name the operation: permits, transmits, states, shows"),

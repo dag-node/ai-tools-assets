@@ -7,6 +7,16 @@ Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 
 ## [Unreleased]
 
+### Fixed
+
+- **`definitional` reads the noun the pivot opens on.** The `--all` check
+  `definitional` reports `is not a` only where the word after the article
+  repeats a word of the subject's own clause, as in `a control the system can
+  decline is not a control`. A noun from an earlier clause, as in a list of
+  test outcomes, and a qualified noun, as in `a name that is not a plain
+  name`, are not reported. It matched a repeated word anywhere in five words
+  either side of the pivot.
+
 ## [0.2.1] - 2026-10-12
 
 ### Fixed
