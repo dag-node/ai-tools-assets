@@ -62,10 +62,14 @@
 #                      AGENTS.md. Each is the mark of a domain rule rather than of a document that
 #                      holds global invariants and routes to the rest.
 #
-# One default check is a plain word list, since the word has no technical sense a second condition would have to keep:
+# Two default checks are word lists, since most of their words have no technical sense a second condition would have
+# to keep:
 #
 #   register-verb      the `admit` family, a register word standing where the code allows (a
 #                      policy, a permission), accepts (a parser, a check) or adds (a release).
+#   legal-register     the legal words for a process step, where a project writes approval,
+#                      revision, change request or decision. `void` and `standing` report only
+#                      in their legal sense, which the pattern reads from the word beside them.
 #
 # `--all` adds the shape checks. Each one greps a sub-shape of its rule -- the half a regex can see -- because the rules
 # themselves are about meaning: "an absolute with no guard in the same sentence" and "a clause mirrored across a pivot"
@@ -423,10 +427,21 @@ DOCUMENT_MARKUP_CHECKS = MARKUP_CHECKS - {"bare-option"}
 # release adds a kind. Every inflection reports, since the word has no technical sense to keep.
 REGISTER_VERB = re.compile(r"\b(admit|admits|admitted|admitting)\b", re.I)
 
+# The legal register names a process step a project names in its own words: a change is approved, revised, requested
+# or decided. The plain words report in every form. `void` and `standing` also have ordinary senses -- a C return type,
+# `long-standing` -- so each reports only in its legal sense: `void` as a verb or after the verb that declares a thing
+# void, `standing` after the determiner or verb that makes it a noun of status or before the `of` that does.
+LEGAL_REGISTER = re.compile(
+    r"\b(?:ratif(?:y|ies|ied|ying|ications?)|amendments?|hereby|pursuant|thereunder|entitlements?"
+    r"|void(?:s|ed|ing)|(?:is|are|was|were|be|becomes?|became|null and|renders?|rendered) void"
+    r"|(?:the same|its|their|equal|has|have|had) standing|(?<!-)standing of)\b", re.I)
+
 DEFAULT_CHECKS = [
     ("bare-option", bare_option, CODE_SPAN_HINT),
     ("register-verb", REGISTER_VERB,
      "`allows` for a policy or a permission, `accepts` for a parser or a check, `adds` for a release"),
+    ("legal-register", LEGAL_REGISTER,
+     "the process word: approval, revision, change request, decision"),
     ("bare-placeholder", bare_placeholder, CODE_SPAN_HINT),
     ("bare-variable", BARE_VARIABLE, CODE_SPAN_HINT),
     ("bare-path", bare_path, CODE_SPAN_HINT),
