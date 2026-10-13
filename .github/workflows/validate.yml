@@ -13,6 +13,11 @@ on:
 permissions:
   contents: read
 
+# Python does not write a bytecode cache, so the skill tests do not leave
+# a __pycache__ in a set, which tools/validate refuses.
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
+
 jobs:
   # A called job reports its check run as `<this job> / <called job>`. This
   # job is named for the repository, so its check is
