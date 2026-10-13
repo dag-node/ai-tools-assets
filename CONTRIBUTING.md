@@ -225,7 +225,8 @@ a model, which cannot certify the DCO.
 Use a branch named `<type>/<id>-<name>` and give the pull request an explicit
 title in the same `type(scope): summary` form as a commit subject. A set is
 released by tagging `<set>/v<semver>` after its `version` and `CHANGELOG.md`
-are updated.
+are updated; `packaging/README.md` states the steps, including the image
+check run before the tag.
 
 ## License
 
