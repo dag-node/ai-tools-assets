@@ -7,6 +7,15 @@ Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 
 ## [Unreleased]
 
+### Added
+
+- **`legal-register` check.** `prose-check.py` reports the legal words for
+  a process step by default: `ratify`, `ratification`, `amendment`, `hereby`,
+  `pursuant`, `thereunder`, `entitlement`, `void` as a verb or a state, and
+  `standing` as a noun of status. The hint names the word to write instead:
+  approval, revision, change request or decision. The writing skill's "Plain
+  register" rule lists the same words.
+
 ### Fixed
 
 - **Licence texts are not read.** `prose-check.py` does not read a file named

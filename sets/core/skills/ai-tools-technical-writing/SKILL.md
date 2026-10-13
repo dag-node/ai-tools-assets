@@ -202,8 +202,9 @@ a statement about the quality of what it pulls in.
 
 ### Plain register
 
-Leave out legal phrasing (hereby, pursuant to, thereunder, entitlement, standing, void), aphorisms and slogans,
-philosophical framing, and marketing language.
+Leave out legal phrasing (hereby, pursuant to, thereunder, entitlement, standing, void, <!-- prose-check: ignore -->
+ratify, ratification, ratified, amendment), aphorisms and slogans, philosophical framing, <!-- prose-check: ignore -->
+and marketing language. A process step is an approval, a revision, a change request or a decision.
 
 - In style: `Returns 401 when the request is unauthenticated.`
 - Off style: `A caller lacking identity receives no authorization.`

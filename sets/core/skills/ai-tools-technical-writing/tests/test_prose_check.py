@@ -111,6 +111,26 @@ class DefaultChecksTest(ProseCheckTestCase):
              "The prompt is fast-tracked when its default is yes, and the build is fail-fast."),
         ])
 
+    def test_legal_register_is_reported_and_its_ordinary_senses_are_silent(self) -> None:
+        # `void` and `standing` report in their legal sense alone: a C return type and an adjective stay silent.
+        self.assertCases([
+            ("legal-register", "TEST-PC-201-legal-ratify.md", "The operator ratifies the plan before the build."),
+            ("legal-register", "TEST-PC-202-legal-ratification.md", "The spec goes to the operator for ratification."),
+            ("legal-register", "TEST-PC-203-legal-amendment.md", "The second amendment moves the tag."),
+            ("legal-register", "TEST-PC-204-legal-hereby.md", "The installer hereby grants the group read access."),
+            ("legal-register", "TEST-PC-205-legal-pursuant.md", "The tag moves pursuant to the release plan."),
+            ("legal-register", "TEST-PC-206-legal-thereunder.md", "The keys listed thereunder are trusted."),
+            ("legal-register", "TEST-PC-207-legal-entitlement.md", "The operator's entitlement covers the claim."),
+            ("legal-register", "TEST-PC-208-legal-void-verb.md", "A later release voids the old pin."),
+            ("legal-register", "TEST-PC-209-legal-void-state.md", "The pin is void once the key rotates."),
+            ("legal-register", "TEST-PC-210-legal-same-standing.md", "The hook has the same standing as the override."),
+            ("legal-register", "TEST-PC-211-legal-standing-of.md", "It carries the standing of the test hook."),
+        ], [
+            ("TEST-PC-212-legal-plain.md", "The operator approves the plan, and a revision moves the tag."),
+            ("TEST-PC-213-legal-ordinary-senses.md",
+             "The handler returns void, as the long-standing interface does, and the standing default stays."),
+        ])
+
     def test_nothing_as_an_output_verbs_object_is_a_result(self) -> None:
         # Exempt: the object of an output verb. Not exempt: an authority, a returned value, and an empty effect.
         self.assertCases([
