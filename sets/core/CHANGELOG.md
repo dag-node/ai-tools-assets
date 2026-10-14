@@ -7,6 +7,8 @@ Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-10-14
+
 ### Added
 
 - **`legal-register` check.** `prose-check.py` reports the legal words for
