@@ -7,6 +7,34 @@ Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-10-14
+
+### Added
+
+- **`legal-register` check.** `prose-check.py` reports the legal words for
+  a process step by default: `ratify`, `ratification`, `amendment`, `hereby`,
+  `pursuant`, `thereunder`, `entitlement`, `void` as a verb or a state, and
+  `standing` as a noun of status. The hint names the word to write instead:
+  approval, revision, change request or decision. The writing skill's "Plain
+  register" rule lists the same words.
+
+### Fixed
+
+- **Licence texts are not read.** `prose-check.py` does not read a file named
+  `LICENSE`, `LICENCE` or `COPYING`, with any suffix, or a file under
+  `LICENSES/`, and `--print-width` reports it as the kind `license`, which
+  a formatter skips. It read a `LICENSE.md` as a document and reported the
+  publisher's wording, and reported a plain-text licence as `source`, the kind
+  a formatter fills.
+
+- **`definitional` reads the noun the pivot opens on.** The `--all` check
+  `definitional` reports `is not a` only where the word after the article
+  repeats a word of the subject's own clause, as in `a control the system can
+  decline is not a control`. A noun from an earlier clause, as in a list of
+  test outcomes, and a qualified noun, as in `a name that is not a plain
+  name`, are not reported. It matched a repeated word anywhere in five words
+  either side of the pivot.
+
 ## [0.2.1] - 2026-10-12
 
 ### Fixed

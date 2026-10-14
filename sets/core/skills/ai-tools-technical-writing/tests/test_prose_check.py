@@ -111,6 +111,26 @@ class DefaultChecksTest(ProseCheckTestCase):
              "The prompt is fast-tracked when its default is yes, and the build is fail-fast."),
         ])
 
+    def test_legal_register_is_reported_and_its_ordinary_senses_are_silent(self) -> None:
+        # `void` and `standing` report in their legal sense alone: a C return type and an adjective stay silent.
+        self.assertCases([
+            ("legal-register", "TEST-PC-201-legal-ratify.md", "The operator ratifies the plan before the build."),
+            ("legal-register", "TEST-PC-202-legal-ratification.md", "The spec goes to the operator for ratification."),
+            ("legal-register", "TEST-PC-203-legal-amendment.md", "The second amendment moves the tag."),
+            ("legal-register", "TEST-PC-204-legal-hereby.md", "The installer hereby grants the group read access."),
+            ("legal-register", "TEST-PC-205-legal-pursuant.md", "The tag moves pursuant to the release plan."),
+            ("legal-register", "TEST-PC-206-legal-thereunder.md", "The keys listed thereunder are trusted."),
+            ("legal-register", "TEST-PC-207-legal-entitlement.md", "The operator's entitlement covers the claim."),
+            ("legal-register", "TEST-PC-208-legal-void-verb.md", "A later release voids the old pin."),
+            ("legal-register", "TEST-PC-209-legal-void-state.md", "The pin is void once the key rotates."),
+            ("legal-register", "TEST-PC-210-legal-same-standing.md", "The hook has the same standing as the override."),
+            ("legal-register", "TEST-PC-211-legal-standing-of.md", "It carries the standing of the test hook."),
+        ], [
+            ("TEST-PC-212-legal-plain.md", "The operator approves the plan, and a revision moves the tag."),
+            ("TEST-PC-213-legal-ordinary-senses.md",
+             "The handler returns void, as the long-standing interface does, and the standing default stays."),
+        ])
+
     def test_nothing_as_an_output_verbs_object_is_a_result(self) -> None:
         # Exempt: the object of an output verb. Not exempt: an authority, a returned value, and an empty effect.
         self.assertCases([
@@ -308,6 +328,18 @@ class SuppressionTest(ProseCheckTestCase):
         rc, out = self.run_check("TEST-PC-144-binary.webp")
         self.assertEqual((rc, out), (0, ""), f"TEST-PC-144-binary: expected no finding; rc {rc}, output: {out}")
 
+    def test_a_licence_text_is_not_read_by_its_name(self) -> None:
+        # `--prose` reads every file whole, so a licence text is silent by its name and not by the comment-only reading
+        # a `.txt` file otherwise takes. A lower-case `license.md` is a document about licensing, and is read.
+        licence = ("Permission is hereby granted, free of charge.", "There is nothing left to check.")
+        self.assertCases([
+            ("nothing", "docs/TEST-PC-217-license.md", *licence),
+        ], [
+            ("TEST-PC-214-licence/LICENSE.md", *licence),
+            ("TEST-PC-215-licence/COPYING", *licence),
+            ("TEST-PC-216-licence/LICENSES/MIT.txt", *licence),
+        ], options=("--prose",))
+
 
 class ExitStatusTest(ProseCheckTestCase):
     def test_exit_status(self) -> None:
@@ -401,6 +433,28 @@ class MirroredClauseTest(ProseCheckTestCase):
             ("TEST-PC-188-mirror-identifier.sh", "x=1",
              "# Reads ai_tools_load_operators rather than the load of each file."),
             ("TEST-PC-189-mirror-code-spans.md", "Use `alpha` rather than `beta` for the key."),
+        ], options=("--all",))
+
+
+class DefinitionalTest(ProseCheckTestCase):
+    def test_the_noun_after_the_pivot_restating_its_subject_is_the_figure(self) -> None:
+        self.assertCases([
+            ("definitional", "TEST-PC-195-definitional.md", "A control the system can decline is not a control."),
+            # The subject's noun opens ten words before the pivot, beyond the mirror check's window.
+            ("definitional", "TEST-PC-196-definitional-far-subject.md",
+             "Exempts no cgroup, because a stop path the monitored system can put itself outside of is not a stop path."),
+            ("definitional", "TEST-PC-197-definitional-intensifier.md", "A check that cannot fail is not a real check."),
+        ], [
+            # N13: the outcomes of a file-type test, where `directory` repeats from an earlier clause.
+            ("TEST-PC-198-definitional-other-clause.sh", "#!/usr/bin/env bash",
+             "# Returns 0 without a line for an absent retired directory, and 1 when <live_root>/retired is a symlink,",
+             "# is not a directory, or its listing fails, so a caller tells a directory it could not read from one",
+             "# that does not hold a copy.",
+             "x=1"),
+            ("TEST-PC-199-definitional-modifier.md",
+             "Returns 1 for a key outside the table or a name that is not a plain name once the prefix is added."),
+            ("TEST-PC-200-definitional-dash.md",
+             "A pid that has already exited is not an error -- that is the outcome being aimed at."),
         ], options=("--all",))
 
 
@@ -616,6 +670,9 @@ class PrintWidthTest(ProseCheckTestCase):
             ("TEST-PC-151-width-generated", "-", "generated",
              [self.fixture("TEST-PC-151-width-generated.md", "<!-- prose-check: ignore-file -->", "Copied text.")]),
             ("TEST-PC-152-width-binary", "-", "binary", ["TEST-PC-144-binary.webp"]),
+            # A formatter skips a kind it does not fill, so it leaves a licence text as written.
+            ("TEST-PC-218-width-licence", "-", "license", [self.fixture("LICENSE.md", "Copied text.")]),
+            ("TEST-PC-219-width-licences-dir", "-", "license", [self.fixture("LICENSES/MIT.txt", "Copied text.")]),
             ("TEST-PC-153-width-override-document", "60", "document",
              ["--width", "60", "TEST-PC-145-width-document.md"]),
             ("TEST-PC-154-width-override-source", "60", "source", ["--width", "60", "TEST-PC-148-width-source.sh"]),

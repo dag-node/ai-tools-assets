@@ -192,12 +192,12 @@ needs it.
 
 ## Checks
 
-CI runs the pinned tools' `validate` workflow: `tools/validate` over the
-sets, `sync-manifests --check`, `check-licenses`, `reuse lint`, `shellcheck`
+CI runs the pinned tools' `validate` workflow: `tools/validate` over the sets,
+`sync-manifests --check`, `check-licenses`, `reuse lint`, `shellcheck`
 over every tracked `.sh` file, and `check-signoff` over the pull request's
-commits; the `skill tests` job runs every skill's tests on Python 3.9 and
-3.12. The repository's `.gitignore` keeps `.env`, `*.pem` and `*.key` files
-out of a commit.
+commits; its `tests` job runs every skill's tests on Python 3.9, inside
+the pinned EL9 image, and on 3.12. The repository's `.gitignore` keeps `.env`,
+`*.pem` and `*.key` files out of a commit.
 
 ## Commit style
 
@@ -225,7 +225,8 @@ a model, which cannot certify the DCO.
 Use a branch named `<type>/<id>-<name>` and give the pull request an explicit
 title in the same `type(scope): summary` form as a commit subject. A set is
 released by tagging `<set>/v<semver>` after its `version` and `CHANGELOG.md`
-are updated.
+are updated; `packaging/README.md` states the steps, including the image
+check run before the tag.
 
 ## License
 

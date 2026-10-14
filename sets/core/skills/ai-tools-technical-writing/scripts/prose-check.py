@@ -62,10 +62,14 @@
 #                      AGENTS.md. Each is the mark of a domain rule rather than of a document that
 #                      holds global invariants and routes to the rest.
 #
-# One default check is a plain word list, since the word has no technical sense a second condition would have to keep:
+# Two default checks are word lists, since most of their words have no technical sense a second condition would have
+# to keep:
 #
 #   register-verb      the `admit` family, a register word standing where the code allows (a
 #                      policy, a permission), accepts (a parser, a check) or adds (a release).
+#   legal-register     the legal words for a process step, where a project writes approval,
+#                      revision, change request or decision. `void` and `standing` report only
+#                      in their legal sense, which the pattern reads from the word beside them.
 #
 # `--all` adds the shape checks. Each one greps a sub-shape of its rule -- the half a regex can see -- because the rules
 # themselves are about meaning: "an absolute with no guard in the same sentence" and "a clause mirrored across a pivot"
@@ -78,8 +82,8 @@
 #   mirrored-clause    a word stem repeats across `rather than` / `instead of`, which is the
 #                      mirror itself; a plain contrast puts different words on each side. An
 #                      identifier and a code span each read as one word without a stem.
-#   definitional       a head noun repeats across `is not a`, which is the restatement that makes
-#                      the sentence a definition instead of a description.
+#   definitional       the noun `is not a` opens on repeats a word of the clause before it, which is
+#                      the restatement that makes the sentence a definition instead of a description.
 #   history            the past-tense markers only. `no longer` describes a current state as often
 #                      as a change, so it is left to the reader.
 #
@@ -101,7 +105,9 @@
 # is not read at all, which is how a GENERATED file whose text is copied from elsewhere stays out of the report: its
 # findings name prose that file cannot fix. The file marker is read only as a whole line, so a document describing
 # either marker is still checked. A file holding a NUL byte in its first 8 KiB is binary and is not read either: read
-# as source it yields findings off compressed bytes.
+# as source it yields findings off compressed bytes. Nor is a licence text, known by its name (`LICENSE`, `COPYING`,
+# a file under `LICENSES/`): its wording is the publisher's, and `--print-width` reports it as a kind of its own,
+# so a formatter does not fill it.
 
 import argparse
 import os
@@ -144,6 +150,22 @@ def ignored_file(path):
             found = False
         _ignore_file_cache[path] = found
     return _ignore_file_cache[path]
+
+
+# The names a licence text ships under: `LICENSE`, `LICENCE` or `COPYING` with any suffix, and REUSE's `LICENSES/`
+# directory. The stem is upper-case only, so a module named `license.py` is still read.
+LICENSE_NAME = re.compile(r"(?:LICEN[CS]E|COPYING)(?:[.-][\w.-]+)?")
+
+
+def is_license_text(path):
+    """True when `path` is named as a licence text, or sits in a `LICENSES` directory."""
+    parts = os.path.normpath(path).split(os.sep)
+    return "LICENSES" in parts[:-1] or bool(LICENSE_NAME.fullmatch(parts[-1]))
+
+
+def unread_file(path):
+    """True when `path` is not read: a licence text, or a file carrying the ignore-file marker."""
+    return is_license_text(path) or ignored_file(path)
 
 # Any verb before `no`, rather than a list of them: an enumerated list finds only the verbs whoever wrote it thought
 # of, and this construction takes every transitive verb in the language. A particle may sit between the verb
@@ -405,10 +427,21 @@ DOCUMENT_MARKUP_CHECKS = MARKUP_CHECKS - {"bare-option"}
 # release adds a kind. Every inflection reports, since the word has no technical sense to keep.
 REGISTER_VERB = re.compile(r"\b(admit|admits|admitted|admitting)\b", re.I)
 
+# The legal register names a process step a project names in its own words: a change is approved, revised, requested
+# or decided. The plain words report in every form. `void` and `standing` also have ordinary senses -- a C return type,
+# `long-standing` -- so each reports only in its legal sense: `void` as a verb or after the verb that declares a thing
+# void, `standing` after the determiner or verb that makes it a noun of status or before the `of` that does.
+LEGAL_REGISTER = re.compile(
+    r"\b(?:ratif(?:y|ies|ied|ying|ications?)|amendments?|hereby|pursuant|thereunder|entitlements?"
+    r"|void(?:s|ed|ing)|(?:is|are|was|were|be|becomes?|became|null and|renders?|rendered) void"
+    r"|(?:the same|its|their|equal|has|have|had) standing|(?<!-)standing of)\b", re.I)
+
 DEFAULT_CHECKS = [
     ("bare-option", bare_option, CODE_SPAN_HINT),
     ("register-verb", REGISTER_VERB,
      "`allows` for a policy or a permission, `accepts` for a parser or a check, `adds` for a release"),
+    ("legal-register", LEGAL_REGISTER,
+     "the process word: approval, revision, change request, decision"),
     ("bare-placeholder", bare_placeholder, CODE_SPAN_HINT),
     ("bare-variable", BARE_VARIABLE, CODE_SPAN_HINT),
     ("bare-path", bare_path, CODE_SPAN_HINT),
@@ -501,6 +534,35 @@ def mirrored(sentence, pivot):
     return match if left & right else None
 
 
+# A definition restates its subject's noun as the noun the pivot opens on: `a control the system can decline is not
+# a control`. A word between the article and that noun names a different kind of thing, which is a description --
+# `a name that is not a plain name` states what a validator refuses -- so the check compares the word right after
+# the article, with an intensifier read past (`is not a real check`), against the subject's clause. A comma,
+# a semicolon, a colon or a spaced dash closes a clause, and a noun beyond one belongs to another: `an absent directory,
+# and 1 when the path is a symlink, is not a directory` lists the outcomes of a test. A head word under four letters,
+# an identifier and a code span are not compared. A subject holding a comma list is cut at its last comma, so `a control
+# the system can decline, disable, or route around is not a control` is not reported.
+#
+# Measured over ai-tools-base at core 0.2.1: 22 findings, 4 of them the figure. The clause bound alone leaves 10, all 4
+# among them; the head word leaves 5, all 4 among them. The whole clause is compared, not the mirror check's five
+# words: `a stop path the monitored system can put itself outside of is not a stop path` opens its subject ten words
+# back.
+CLAUSE_BOUNDARY = re.compile(r"[,;:]|\s(?:--|—|–)\s")
+INTENSIFIER = re.compile(r"\W*(?:real|true|genuine|proper|actual|meaningful|working)\W*", re.I)
+
+
+def definitional(sentence):
+    """True when the noun `is not a` opens on repeats a word of the clause before the pivot."""
+    match = DEFINITIONAL_PIVOT.search(sentence)
+    if not match:
+        return None
+    following = [word for word in sentence[match.end():].split()[:3] if not INTENSIFIER.fullmatch(word)]
+    head = stem_words(following[0])[:1] if following else []
+    if not head or head[0] is None:
+        return None
+    return match if head[0][:4] in stems(CLAUSE_BOUNDARY.split(sentence[:match.start()])[-1]) else None
+
+
 def unbacked_absolute(sentence):
     """An absolute in a sentence with no subordinating conjunction to hang a guard on."""
     match = ABSOLUTE.search(sentence)
@@ -566,7 +628,7 @@ def closed_set_count(sentence):
 EXTRA_CHECKS = [
     ("mirrored-clause", lambda s: mirrored(s, MIRROR_PIVOT),
      "state the fact once, in one direction"),
-    ("definitional", lambda s: mirrored(s, DEFINITIONAL_PIVOT), "describe the mechanism"),
+    ("definitional", definitional, "describe the mechanism"),
     ("unbacked-absolute", unbacked_absolute, "name the guard in the same sentence"),
     ("fronted-quantifier-inflected", FRONTED_QUANTIFIER_INFLECTED, None),  # hint from suggest()
     ("vague-verb", vague_verb, "name the operation: permits, transmits, states, shows"),
@@ -1412,6 +1474,7 @@ def document_line_findings(source, width):
 #
 #   missing    the path cannot be read; the run exits 1
 #   binary     a NUL byte in the first 8 KiB, so the file is not read
+#   license    a licence text by its name, so the file is not read
 #   generated  the ignore-file marker on a comment line, so the file is not read
 #   header     under `--config-header`: every line, at HEADER_WIDTH
 #   man        a man page: left to roff
@@ -1420,7 +1483,7 @@ def document_line_findings(source, width):
 #
 # `--width` overrides the column of every measured kind, as it does for the checks; `--prose` and `--source` decide
 # between the last two, as they do for the reading.
-PRINT_WIDTH_KINDS = ("missing", "binary", "generated", "header", "man", "document", "source")
+PRINT_WIDTH_KINDS = ("missing", "binary", "license", "generated", "header", "man", "document", "source")
 
 
 def width_of(path, width, header):
@@ -1429,6 +1492,8 @@ def width_of(path, width, header):
         return None, "missing"
     if is_binary_file(path):
         return None, "binary"
+    if is_license_text(path):
+        return None, "license"
     if ignored_file(path):
         return None, "generated"
     if header:
@@ -1518,7 +1583,7 @@ def main():
     if args.kept is not None:
         count = 0
         for path, kind, detail, context in kept_findings(args.kept):
-            if ignored_file(path):
+            if unread_file(path):
                 continue
             count += 1
             print(f"{path}: {kind} [{detail}] -- {KEPT_HINTS[kind]}")
@@ -1550,7 +1615,7 @@ def main():
         count = 0
         width = args.width if args.width is not None else HEADER_WIDTH
         for path, number, name, token, hint, text in header_findings(args.paths, width):
-            if ignored_file(path):
+            if unread_file(path):
                 continue
             count += 1
             print(f"{path}:{number}: {name} [{token}] -- {hint}")
@@ -1568,14 +1633,14 @@ def main():
                   for number, line in enumerate(open(args.message, errors="ignore"), 1))
     else:
         source = file_lines(args.paths)
-    # Read twice -- once as sentences, once as lines -- so the source is held rather than streamed, and an ignore-file
-    # path is dropped here, which covers every reading mode at once.
-    source = [item for item in source if not ignored_file(item[0])]
+    # Read twice -- once as sentences, once as lines -- so the source is held rather than streamed, and an unread path
+    # is dropped here, which covers every reading mode at once.
+    source = [item for item in source if not unread_file(item[0])]
 
     reported = selected_findings(source, checks, args.width, args.wrap)
     if args.new is not None:
         baseline = [item for item in revision_lines(args.paths, args.new)
-                    if not ignored_file(item[0])]
+                    if not unread_file(item[0])]
         reported = added_findings(
             list(reported), selected_findings(baseline, checks, args.width, args.wrap))
 

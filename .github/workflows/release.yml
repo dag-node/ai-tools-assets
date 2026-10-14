@@ -26,7 +26,7 @@ jobs:
   # runs with this repository's signing secrets, so the code it runs changes
   # only in a reviewed commit here.
   ai-tools-assets:
-    uses: dag-node/ai-tools-assets-tools/.github/workflows/set-release.yml@49eddc1f67e23cf6a7b02e82936e7bb03eb10609 # v1.2.0
+    uses: dag-node/ai-tools-assets-tools/.github/workflows/set-release.yml@babd7c40d022c42f4d3d4899b869661731d712d2 # v1.4.0
     permissions:
       contents: write
     secrets: inherit

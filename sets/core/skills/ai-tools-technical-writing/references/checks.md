@@ -39,8 +39,9 @@ against; mark anything else deliberate with `prose-check: ignore` on the line, o
 A **generated** file takes `prose-check: ignore-file` on a comment line of its own instead, and is
 not read at all — the marker is for a file whose text is copied from the targets it indexes, where a finding names prose
 that file cannot fix and the fix would edit a runtime string. It is read only as a whole line, so a document naming
-the marker is still checked. Run it before committing prose, and on the commit message too — the universal rules cover
-that artifact like any other.
+the marker is still checked. A licence text is not read either, without a marker: a file named `LICENSE`, `LICENCE`
+or `COPYING`, with any suffix, or a file under a `LICENSES/` directory. Run it before committing prose, and on
+the commit message too — the universal rules cover that artifact like any other.
 
 ## Widths
 

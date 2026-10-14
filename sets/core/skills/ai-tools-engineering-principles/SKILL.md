@@ -55,7 +55,7 @@ the code is the best documentation.
   and never average two descriptions. Where the *code* contradicts an invariant `CLAUDE.md` or a rule states, that is
   a defect in the code — raise it and leave the invariant standing, because rewriting the invariant to match retires
   a guarantee by editing prose. Where the code is right but grants more than the invariant needs, propose the tightening
-  with its cost: prose that only tracks the code ratifies every widening the code has drifted into. A docs-to-code ratio
+  with its cost: prose that only tracks the code approves every widening the code has drifted into. A docs-to-code ratio
   climbing toward parity is a signal the *code* must become self-descriptive (a rename, an extraction, a stronger type)
   — not that it needs more prose.
 - **Match the surrounding code.** Adopt the file's existing idioms, naming, and comment density rather than importing
