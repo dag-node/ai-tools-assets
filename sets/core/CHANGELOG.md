@@ -1,11 +1,32 @@
 # Changelog: core
 
-Changes to the `core` set, released as the package `ai-tools-assets-core` and
-tagged `core/v<version>`. The format follows [Keep a
-Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
-[Semantic Versioning](https://semver.org/).
+Changes to the `core` set, released as the package `ai-tools-assets-sets-core`
+(`ai-tools-assets-core` up to 0.2.2) and tagged `core/v<version>`. The format
+follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions
+follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [0.2.3] - 2026-10-15
+
+### Changed
+
+- **The package is `ai-tools-assets-sets-core`.** `dnf upgrade` replaces
+  an installed `ai-tools-assets-core` with it in one transaction, and
+  `dnf install ai-tools-assets-core` installs it. The files stay under
+  `/usr/share/ai-tools-assets/core/`. The release zip is
+  `ai-tools-assets-sets-core-<version>.zip`, and the plugin keeps the name
+  `ai-tools-assets-core`. Before, the package and the zip were named
+  `ai-tools-assets-core`.
+
+### Fixed
+
+- **A comment heading framed by dash runs stands alone.** `prose-check.py`
+  ends a block at a comment line such as `# --- Title ---`, as it does at
+  a Markdown heading. It joined the heading to the sentence under it, so
+  a word of the heading reached a check on that sentence: `definitional`
+  matched a noun of the heading, and a guard word in the heading kept
+  `unbacked-absolute` from reporting the sentence.
 
 ## [0.2.2] - 2026-10-14
 

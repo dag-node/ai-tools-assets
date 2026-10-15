@@ -455,6 +455,11 @@ class DefinitionalTest(ProseCheckTestCase):
              "Returns 1 for a key outside the table or a name that is not a plain name once the prefix is added."),
             ("TEST-PC-200-definitional-dash.md",
              "A pid that has already exited is not an error -- that is the outcome being aimed at."),
+            # A comment heading framed by dash runs ends its block, so `shipped` in it does not reach the next sentence.
+            ("TEST-PC-220-definitional-dash-ruled-heading.sh", "#!/usr/bin/env bash",
+             "# --- Managed files: the state of a kept file against its shipped copy -----------------------",
+             "# The status reports say when an agent's managed file is not the shipped one.",
+             "x=1"),
         ], options=("--all",))
 
 
