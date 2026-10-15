@@ -7,6 +7,15 @@ Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 
 ## [Unreleased]
 
+### Fixed
+
+- **A comment heading framed by dash runs stands alone.** `prose-check.py`
+  ends a block at a comment line such as `# --- Title ---`, as it does at
+  a Markdown heading. It joined the heading to the sentence under it, so
+  a word of the heading reached a check on that sentence: `definitional`
+  matched a noun of the heading, and a guard word in the heading kept
+  `unbacked-absolute` from reporting the sentence.
+
 ## [0.2.2] - 2026-10-14
 
 ### Added
