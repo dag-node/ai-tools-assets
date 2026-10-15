@@ -75,9 +75,10 @@ does.
 
 With [Agent Tools
 Restricted](https://github.com/dag-node/tools-agent-tools-restricted)
-(`ai-tools-base`), install the set's package and name the assets to enable in
-the root-owned `AI_TOOLS_ASSETS` list. Installing a package does not enable
-any asset.
+(`ai-tools-base`), install the set's package and name the assets to enable
+in the root-owned `AI_TOOLS_ASSETS` list. Installing a package does not enable
+any asset. A host holds the package at an installed version with dnf's
+`versionlock` plugin.
 
 Without base, `tools/link-set` links a built set's skills into the directory
 an agent reads, as described in [tools/README.md](tools/README.md).
