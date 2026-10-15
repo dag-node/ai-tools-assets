@@ -28,8 +28,8 @@ because Claude Code loads every `.md` file in it as a subagent.
 Neither plugin manifest declares any component keys, so each agent reads
 `skills/`, and Claude Code `agents/`, from their default places. Codex reads
 skills alone; the subagents are Claude Code's. Each manifest's `name`,
-`version` and `license` equal the set's: the plugin is named like the package,
-`ai-tools-assets-<set>`, and takes its version from `set.conf`. The
+`version` and `license` equal the set's: the plugin is named
+`ai-tools-assets-<set>` and takes its version from `set.conf`. The
 repository's `.claude-plugin/marketplace.json` lists every set, and Codex reads
 the same file. The manifests and the marketplace are written from `set.conf`,
 and CI refuses one that differs from it.
@@ -58,8 +58,8 @@ contain `anthropic` or `claude`, which Claude reserves. It equals the skill's
 directory name, the subagent's file stem, or the set's directory, and the
 frontmatter `name`.
 
-**A set's name is its namespace.** The package `ai-tools-assets-<set>`, the
-plugin of the same name, the install directory, every asset id
+**A set's name is its namespace.** The package `ai-tools-assets-sets-<set>`,
+the plugin `ai-tools-assets-<set>`, the install directory, every asset id
 `<set>/<kind>/<name>`, and the prefix of the set's asset names all derive from
 it. An agent lists skills and subagents in one list sorted by name, where the
 set does not show, so the prefix is what groups a set's assets in that list.
