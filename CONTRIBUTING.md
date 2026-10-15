@@ -223,10 +223,15 @@ a model, which cannot certify the DCO.
 ## Pull requests
 
 Use a branch named `<type>/<id>-<name>` and give the pull request an explicit
-title in the same `type(scope): summary` form as a commit subject. A set is
-released by tagging `<set>/v<semver>` after its `version` and `CHANGELOG.md`
-are updated; `packaging/README.md` states the steps, including the image
-check run before the tag.
+title in the same `type(scope): summary` form as a commit subject. The pull
+request targets `develop` and is rebase-merged once the checks are green:
+`develop`'s ruleset requires a linear history. `main` receives releases,
+through a `Merge develop` pull request merged with a merge commit; a set is
+released by tagging `<set>/v<semver>` there after its `version`
+and `CHANGELOG.md` are updated.
+[docs/development/release.md](docs/development/release.md) states the flow,
+the rulesets and the release checklist, including the image check run
+before the tag.
 
 ## License
 
