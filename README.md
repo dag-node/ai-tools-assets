@@ -5,7 +5,7 @@
 **Skills and subagents for coding agents, released as versioned sets.**
 
 A set is one collection of assets, kept under `sets/<set>/` and released as
-the package `ai-tools-assets-<set>`. Its skills follow the [Agent Skills
+the package `ai-tools-assets-sets-<set>`. Its skills follow the [Agent Skills
 specification](https://agentskills.io/) without the fields that change
 permissions or run code. A set skill therefore loads unchanged in Claude Code,
 Codex, Qwen Code and other agents that read `SKILL.md`, and it does not widen
