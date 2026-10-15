@@ -756,8 +756,9 @@ def _modal(word):
 MESSAGE = "<message>"  # the path a commit message is reported under
 
 # A line that carries its own prose and does not continue onto the next one: a Markdown heading or table row, a man-page
-# macro. Joining a table would let a guard word in one row suppress a finding in another.
-STANDALONE = re.compile(r"^\s*(\||#{1,6}\s|\.[A-Za-z])")
+# macro, a comment heading framed by dash runs (`# --- Title ---`). Joining a table would let a guard word in one row
+# suppress a finding in another.
+STANDALONE = re.compile(r"^\s*(\||#{1,6}\s|\.[A-Za-z]|-{3,}\s.*\s-{3,}\s*$)")
 # A line that is wholly a machine-read tag is not prose. An SPDX identifier heads every source file in a tree
 # that carries them, and joined to the block beneath it puts a licence expression inside the header's first sentence.
 MACHINE_TAG = re.compile(r"^\s*(?:#|//|;|--)?\s*SPDX-[\w-]+:\s*\S+\s*$")
