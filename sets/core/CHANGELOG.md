@@ -7,6 +7,8 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-10-15
+
 ### Changed
 
 - **The package is `ai-tools-assets-sets-core`.** `dnf upgrade` replaces
