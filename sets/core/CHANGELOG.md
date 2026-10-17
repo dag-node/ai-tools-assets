@@ -7,6 +7,8 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-10-17
+
 ### Fixed
 
 - **The MIT text is the one SPDX publishes.** `LICENSES/MIT.txt`,
