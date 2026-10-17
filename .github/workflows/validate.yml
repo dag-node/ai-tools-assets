@@ -21,7 +21,7 @@ jobs:
   # `ai-tools-assets / tests (python 3.12)`, the exact contexts the ruleset
   # on main requires.
   ai-tools-assets:
-    uses: dag-node/ai-tools-assets-tools/.github/workflows/validate.yml@9a64b82aedc3738e99cd8c0416cd2459fc20317f # v1.5.2
+    uses: dag-node/ai-tools-assets-tools/.github/workflows/validate.yml@e94784e4390442112481ff1ae7274d0e16750a89 # v1.6.0
     with:
       # The sign-off check fails the job here; the reusable workflow reports it alone until a caller sets this.
       enforce-signoff: true
