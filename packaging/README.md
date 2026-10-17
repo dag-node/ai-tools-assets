@@ -10,13 +10,11 @@ bash ../ai-tools-assets-tools/packaging/release-steps.sh check-images
 ```
 
 It asks each image's registry for the manifest at the pinned digest and exits
-non-zero when a digest no longer resolves, naming the digest to pin; the
-release run pulls every image before its first signature, so a stale digest
-fails the release there otherwise. Then tag:
-
-```bash
-git tag -s core/v0.1.0 -m "core 0.1.0" && git push origin core/v0.1.0
-```
+non-zero when a digest no longer resolves, naming the digest to pin;
+the release run pulls every image before its first signature, so a stale digest
+fails the release there otherwise. The steps around it, from the release branch
+to the tag, are
+in [docs/development/release.md](../docs/development/release.md).
 
 [release.yml](../.github/workflows/release.yml) calls the reusable
 `set-release.yml` of

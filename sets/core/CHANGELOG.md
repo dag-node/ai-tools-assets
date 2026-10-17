@@ -7,6 +7,16 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-10-17
+
+### Fixed
+
+- **The MIT text is the one SPDX publishes.** `LICENSES/MIT.txt`,
+  which the package carries, is the text `reuse download MIT` writes, its
+  holder line the published placeholder; `LICENSE` and `REUSE.toml` name
+  the holder. Before, the text carried the holder line, so the tools' licence
+  check warned under `license.text-modified`.
+
 ## [0.2.3] - 2026-10-15
 
 ### Changed
