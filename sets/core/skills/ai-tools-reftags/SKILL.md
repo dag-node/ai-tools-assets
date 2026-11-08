@@ -1,6 +1,6 @@
 ---
 name: ai-tools-reftags
-description: "Cross-reference grammar for a documentation tree: a section, table, listing, function doc, comment note, runtime message, or URI that another file cites carries a reftag (`ref-section-h3b7`, `MSG-F6Z3`), and the citation is a link whose text is the reftag, never a line number, a heading anchor, or a position. Ships `scripts/ref-index.py`, which mints an id, writes the index, checks every reference against where its target now is, rewrites stale destinations, and retires an id the tree dropped. Use when adding a cross-reference between files, labelling a referent another document or test cites, minting or retiring a message code, regenerating the index, or reading a `check` finding (duplicate, undefined, same-file, misplaced, missing, stale, resurrected, retired, malformed, link). Trigger on \"reftag\", \"ref-section\", \"message code\", a `MSG-` token, \"cross-reference\", \"references.md\", or a stale link between documents. Prose style is the `ai-tools-technical-writing` skill's."
+description: "Cross-reference grammar for a documentation tree: a section, table, listing, function doc, comment note, runtime message, or URI that another file cites carries a reftag (`ref-section-h3b7`, `MSG-F6Z3`), and the citation is a link whose text is the reftag, never a line number, a heading anchor, or a position. Ships `scripts/ref-index.py`, which mints an id, writes the index, checks every reference against where its target now is, rewrites stale destinations, and retires an id the tree dropped. Use when adding a cross-reference between files, labelling a referent another document or test cites, minting or retiring a message code, regenerating the index, or reading a `check` finding (duplicate, undefined, same-file, misplaced, missing, stale, stale-index, resurrected, retired, malformed, link). Trigger on \"reftag\", \"ref-section\", \"message code\", a `MSG-` token, \"cross-reference\", \"references.md\", or a stale link between documents. Prose style is the `ai-tools-technical-writing` skill's."
 ---
 
 # Cross-reference reftags
@@ -89,10 +89,12 @@ writes the index, `where <reftag>` prints the target's live `file:line`, `relink
 from where the targets are, and `check` reports a reftag defined twice, an id shared by two kinds, a reference with no
 target or to a target in its own file, a caption with no block after it, a destination that is missing or stale,
 an ordinary link whose file or heading is gone, a retired reftag defined again or cited, and a reftag whose id is
-malformed:
+malformed. Given `--index`, it also reports `stale-index` where the committed index differs from what `generate` writes
+from the same files, at the first line that differs, and reports an index it cannot read the same way; a citation added
+since the last `generate` changes a "cited by" cell, so `check` alone answers whether the reference state is current:
 
 ```bash
-python3 scripts/ref-index.py check <file>...
+python3 scripts/ref-index.py check <file>... --index references.md
 ```
 
 A malformed reftag is a prefix followed by anything but a four-character id (`ref-section-k7q`, `MSG-12`): a search
