@@ -7,6 +7,20 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **A retired code in a changelog reads as history.** A comment line
+  carrying `ref-index: history` opens history, which runs to the end of
+  its file: a spec file carries it on the line before `%changelog`,
+  a `CHANGELOG.md` as `<!-- ref-index: history -->`. There
+  `ref-index.py check` does not report a citation of a reftag the retired
+  file lists. Anywhere else such a citation is a `retired` finding, with
+  the release that retired it and the hint to drop the reference. An id
+  that neither the tree nor the retired file defines stays `undefined`,
+  history included. Before, a released changelog entry citing a code that
+  a later release retired failed the check as `undefined`, and the only
+  way out was to edit the released entry.
+
 ## [0.2.4] - 2026-10-17
 
 ### Fixed
