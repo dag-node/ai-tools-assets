@@ -76,7 +76,13 @@
 # target is gone into a second file, with the date, and `new` draws against that file too. A
 # message code lands in a durable audit trail, so an id re-minted for another situation would
 # make an old journal line resolve to the wrong one. `check --retired` reports a retired reftag
-# defined again as `resurrected`.
+# defined again as `resurrected`, and a citation of one as `retired`, except in HISTORY: a released
+# changelog entry cites the codes that were live at its release and does not change when a later
+# release retires one. A comment line carrying `ref-index: history` alone opens history, which
+# runs to the end of its file, so a spec's `%changelog` is history while the scriptlets above it
+# are checked; there a citation of a retired id is not reported. An id that neither the tree nor
+# the retired file defines is `undefined` everywhere, history included, so a mistyped code in
+# a changelog is still caught.
 #
 # Commands:
 #
@@ -105,8 +111,8 @@
 #                                   reference, a misplaced anchor, a caption with no block
 #                                   following it, a destination that is missing or stale,
 #                                   a relative link whose file or heading is gone, a retired
-#                                   reftag defined again, and a reftag whose id is malformed;
-#                                   exit 1 on any report
+#                                   reftag defined again or cited outside history, and
+#                                   a reftag whose id is malformed; exit 1 on any report
 
 import argparse
 import datetime
@@ -225,6 +231,9 @@ MARKDOWN = (".md",)
 # content of a comment line, so a document describing the markers is still read.
 IGNORE_LINE = "ref-index: ignore"
 IGNORE_FILE = re.compile(r"^\s*(?:#|//|<!--|;|--)?\s*ref-index: ignore-file\s*(?:-->)?\s*$")
+# The history marker is read the same way, so a document stating it in a span or a fence does not
+# open history.
+HISTORY_MARKER = re.compile(r"^\s*(?:#|//|<!--|;|--)?\s*ref-index: history\s*(?:-->)?\s*$")
 EXAMPLE = "example"
 
 INDEX_HEADER = """# Cross-reference index
@@ -604,6 +613,17 @@ def malformed_findings(paths):
                 yield path, number, match.group(0)
 
 
+def history_starts(paths):
+    """{path: line number of its first `ref-index: history` marker}, for each path that has one."""
+    starts = {}
+    for path in paths:
+        for number, text in readable_lines(path, read_lines(path) or []):
+            if HISTORY_MARKER.match(text):
+                starts[path] = number
+                break
+    return starts
+
+
 def escape_cell(value):
     """Return the value with each pipe escaped, so it does not open a table column."""
     return value.replace("|", r"\|")
@@ -848,8 +868,20 @@ def command_check(args):
             print(f"{target.path}:{target.line}: resurrected [{target.reftag}] -- retired as "
                   f"{retired[target.reftag][1]!r}; a retired id stays taken, so mint a fresh "
                   f"reftag with `new`")
+    history = history_starts(args.paths) if retired else {}
     for path, number, reftag, link, in_document in references:
         target = targets.get(reftag)
+        if (target is None or target.example) and reftag in retired:
+            start = history.get(path)
+            if start is not None and number > start:
+                continue
+            count += 1
+            row = retired[reftag]
+            release = f" at {row[6]}" if len(row) > 6 and row[6] else ""
+            print(f"{path}:{number}: retired [{reftag}] -- retired{release} as {row[1]!r}; drop "
+                  f"the reference or cite what replaced it; a record of past releases opens "
+                  f"with a `ref-index: history` comment line")
+            continue
         if target is None or target.example:
             count += 1
             print(f"{path}:{number}: undefined [{reftag}] -- no target defines it; label the "
@@ -936,7 +968,7 @@ def main():
     relink.set_defaults(run=command_relink)
 
     check = commands.add_parser("check", help="report a duplicate, undefined, misplaced, missing, "
-                                              "stale, resurrected, or malformed reference")
+                                              "stale, resurrected, retired, or malformed reference")
     check.add_argument("paths", nargs="+", help="files to read")
     check.add_argument("--retired", metavar="PATH", help=retired_help)
     check.set_defaults(run=command_check)
