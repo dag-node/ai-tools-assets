@@ -7,6 +7,8 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-08
+
 ### Added
 
 - **A retired code in a changelog reads as history.** A comment line
