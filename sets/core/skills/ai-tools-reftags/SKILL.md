@@ -1,6 +1,6 @@
 ---
 name: ai-tools-reftags
-description: "Cross-reference grammar for a documentation tree: a section, table, listing, function doc, comment note, runtime message, or URI that another file cites carries a reftag (`ref-section-h3b7`, `MSG-F6Z3`), and the citation is a link whose text is the reftag, never a line number, a heading anchor, or a position. Ships `scripts/ref-index.py`, which mints an id, writes the index, checks every reference against where its target now is, rewrites stale destinations, and retires an id the tree dropped. Use when adding a cross-reference between files, labelling a referent another document or test cites, minting or retiring a message code, regenerating the index, or reading a `check` finding (duplicate, undefined, same-file, misplaced, missing, stale, resurrected, malformed, link). Trigger on \"reftag\", \"ref-section\", \"message code\", a `MSG-` token, \"cross-reference\", \"references.md\", or a stale link between documents. Prose style is the `ai-tools-technical-writing` skill's."
+description: "Cross-reference grammar for a documentation tree: a section, table, listing, function doc, comment note, runtime message, or URI that another file cites carries a reftag (`ref-section-h3b7`, `MSG-F6Z3`), and the citation is a link whose text is the reftag, never a line number, a heading anchor, or a position. Ships `scripts/ref-index.py`, which mints an id, writes the index, checks every reference against where its target now is, rewrites stale destinations, and retires an id the tree dropped. Use when adding a cross-reference between files, labelling a referent another document or test cites, minting or retiring a message code, regenerating the index, or reading a `check` finding (duplicate, undefined, same-file, misplaced, missing, stale, stale-index, resurrected, retired, malformed, link). Trigger on \"reftag\", \"ref-section\", \"message code\", a `MSG-` token, \"cross-reference\", \"references.md\", or a stale link between documents. Prose style is the `ai-tools-technical-writing` skill's."
 ---
 
 # Cross-reference reftags
@@ -88,11 +88,17 @@ since a renamed heading breaks a contents line silently.
 writes the index, `where <reftag>` prints the target's live `file:line`, `relink` rewrites every destination
 from where the targets are, and `check` reports a reftag defined twice, an id shared by two kinds, a reference with no
 target or to a target in its own file, a caption with no block after it, a destination that is missing or stale,
-an ordinary link whose file or heading is gone, a retired reftag defined again, and a reftag whose id is malformed:
+an ordinary link whose file or heading is gone, a retired reftag defined again or cited, and a reftag whose id is
+malformed. Given `--index`, it also reports `stale-index` where the committed index differs from what `generate` writes
+from the same files, at the first line that differs, and reports an index it cannot read the same way; a citation added
+since the last `generate` changes a "cited by" cell, so `check` alone answers whether the reference state is current:
 
 ```bash
-python3 scripts/ref-index.py check <file>...
+python3 scripts/ref-index.py check <file>... --index references.md
 ```
+
+`check` exits 1 on any finding, and 2 when a file it reads cannot be read: the scan skips that file, so the report
+covers less than was asked even where the rest is clean.
 
 A malformed reftag is a prefix followed by anything but a four-character id (`ref-section-k7q`, `MSG-12`): a search
 for the token does not find a target, so `check` reports it at the prefix. Write the id in full, or drop the reftag
@@ -110,6 +116,14 @@ defines to a retired file, with the date and the release the tree is at, and `ne
 and an id drawn again for another situation would make an old journal line resolve to the wrong one. The release column
 is what a row's age is counted in: a repository drops a row once its release is a few stable releases behind, by hand.
 The retired file is history: a session reads the index for current state and does not read the retired file.
+
+`check --retired` reports a citation of a retired reftag as `retired`, with the hint to drop the reference or cite what
+replaced it. A record of past releases is the exception: a released changelog entry cites the codes that were live
+at its release, and it stays as released when a later release retires one. A comment line carrying `ref-index: history`
+alone opens history, which runs to the end of the file, and there a citation of a retired id is not reported. A spec
+file carries the marker on the line before `%changelog`, so its scriptlets stay checked; a `CHANGELOG.md` carries
+`<!-- ref-index: history -->` under its title. An id that neither the tree nor the retired file defines is `undefined`
+in history too, so a mistyped code in a changelog is still caught.
 
 A repository wraps the tool in a script of its own that names the files it reads and the index it writes, so the tool
 stays argument-driven and the paths are stated once, for a pre-commit hook, a test, and a developer's run alike.

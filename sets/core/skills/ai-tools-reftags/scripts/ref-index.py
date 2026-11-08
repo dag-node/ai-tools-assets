@@ -76,7 +76,13 @@
 # target is gone into a second file, with the date, and `new` draws against that file too. A
 # message code lands in a durable audit trail, so an id re-minted for another situation would
 # make an old journal line resolve to the wrong one. `check --retired` reports a retired reftag
-# defined again as `resurrected`.
+# defined again as `resurrected`, and a citation of one as `retired`, except in HISTORY: a released
+# changelog entry cites the codes that were live at its release and does not change when a later
+# release retires one. A comment line carrying `ref-index: history` alone opens history, which
+# runs to the end of its file, so a spec's `%changelog` is history while the scriptlets above it
+# are checked; there a citation of a retired id is not reported. An id that neither the tree nor
+# the retired file defines is `undefined` everywhere, history included, so a mistyped code in
+# a changelog is still caught.
 #
 # Commands:
 #
@@ -102,14 +108,19 @@
 #   where TOKEN [FILE...] [--index] the target's live `file:line` and the lines it spans
 #   relink FILE...                  rewrite every destination in the Markdown files given
 #   check FILE... [--retired]       report a duplicate reftag or id, an undefined or same-file
-#                                   reference, a misplaced anchor, a caption with no block
+#        [--index]                  reference, a misplaced anchor, a caption with no block
 #                                   following it, a destination that is missing or stale,
 #                                   a relative link whose file or heading is gone, a retired
-#                                   reftag defined again, and a reftag whose id is malformed;
-#                                   exit 1 on any report
+#                                   reftag defined again or cited outside history, a reftag
+#                                   whose id is malformed, and, given `--index`, an index that
+#                                   differs from what `generate` writes from the files, which
+#                                   is how a citation added since the last `generate` is seen;
+#                                   exit 1 on any report, and 2 when a file it reads could not
+#                                   be read, since the report then covers less than was asked
 
 import argparse
 import datetime
+import locale
 import os
 import re
 import secrets
@@ -225,6 +236,9 @@ MARKDOWN = (".md",)
 # content of a comment line, so a document describing the markers is still read.
 IGNORE_LINE = "ref-index: ignore"
 IGNORE_FILE = re.compile(r"^\s*(?:#|//|<!--|;|--)?\s*ref-index: ignore-file\s*(?:-->)?\s*$")
+# The history marker is read the same way, so a document stating it in a span or a fence does not
+# open history.
+HISTORY_MARKER = re.compile(r"^\s*(?:#|//|<!--|;|--)?\s*ref-index: history\s*(?:-->)?\s*$")
 EXAMPLE = "example"
 
 INDEX_HEADER = """# Cross-reference index
@@ -270,6 +284,7 @@ INLINE_LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)")
 HTML_ANCHOR = re.compile(r'<a\s+(?:id|name)="([^"]+)"')
 HTML_TAG = re.compile(r"<[^>]+>")
 _anchor_cache = {}
+_unread_paths = set()
 
 
 class Target:
@@ -322,12 +337,17 @@ def id_of(reftag):
 
 
 def read_lines(path):
-    """The lines of `path`, or None with a message on stderr when it cannot be read."""
+    """The lines of `path`, or None with a message on stderr when it cannot be read.
+
+    A path that cannot be read is recorded in `_unread_paths`, which `check` reads for its exit
+    status: a scan skips the file, so a clean report would otherwise cover less than was asked.
+    """
     try:
         with open(path, errors="ignore") as handle:
             return handle.read().splitlines()
     except OSError as exc:
         print(f"ref-index: cannot read {path}: {exc}", file=sys.stderr)
+        _unread_paths.add(path)
         return None
 
 
@@ -604,6 +624,17 @@ def malformed_findings(paths):
                 yield path, number, match.group(0)
 
 
+def history_starts(paths):
+    """{path: line number of its first `ref-index: history` marker}, for each path that has one."""
+    starts = {}
+    for path in paths:
+        for number, text in readable_lines(path, read_lines(path) or []):
+            if HISTORY_MARKER.match(text):
+                starts[path] = number
+                break
+    return starts
+
+
 def escape_cell(value):
     """Return the value with each pipe escaped, so it does not open a table column."""
     return value.replace("|", r"\|")
@@ -635,19 +666,23 @@ def read_retired(path):
     return read_index(path) or {}
 
 
-def command_generate(args):
-    targets, _, references, _ = scan(args.paths)
+def render_index(targets, references, index_path):
+    """The index text for a scan, its links computed from `index_path`, where the index lives."""
     cited = {}
     for path, _, reftag, _, _ in references:
         cited.setdefault(reftag, set()).add(path)
-    index_path = args.at or args.out or "references.md"
     rows = []
     for target in sorted(targets.values(), key=lambda t: (t.path, t.line)):
         shown = (target.reftag if target.example
                  else f"[{target.reftag}]({destination(index_path, target)})")
         rows.append(f"| {id_of(target.reftag)} | {shown} | {escape_cell(target.name)} | {target.path} "
                     f"| {', '.join(sorted(cited.get(target.reftag, ())))} | {target.emitter} |")
-    text = INDEX_HEADER + "".join(row + "\n" for row in rows)
+    return INDEX_HEADER + "".join(row + "\n" for row in rows)
+
+
+def command_generate(args):
+    targets, _, references, _ = scan(args.paths)
+    text = render_index(targets, references, args.at or args.out or "references.md")
     if args.out:
         with open(args.out, "w") as handle:
             handle.write(text)
@@ -848,8 +883,20 @@ def command_check(args):
             print(f"{target.path}:{target.line}: resurrected [{target.reftag}] -- retired as "
                   f"{retired[target.reftag][1]!r}; a retired id stays taken, so mint a fresh "
                   f"reftag with `new`")
+    history = history_starts(args.paths) if retired else {}
     for path, number, reftag, link, in_document in references:
         target = targets.get(reftag)
+        if (target is None or target.example) and reftag in retired:
+            start = history.get(path)
+            if start is not None and number > start:
+                continue
+            count += 1
+            row = retired[reftag]
+            release = f" at {row[6]}" if len(row) > 6 and row[6] else ""
+            print(f"{path}:{number}: retired [{reftag}] -- retired{release} as {row[1]!r}; drop "
+                  f"the reference or cite what replaced it; a record of past releases opens "
+                  f"with a `ref-index: history` comment line")
+            continue
         if target is None or target.example:
             count += 1
             print(f"{path}:{number}: undefined [{reftag}] -- no target defines it; label the "
@@ -883,9 +930,39 @@ def command_check(args):
         print(f"{path}:{number}: malformed [{token}] -- write the reftag in full (prefix, dash, "
               f"four-character id), or drop the reftag shape if this names an argument rather "
               f"than a target")
+    if args.index is not None:
+        count += stale_index_findings(args.index, render_index(targets, references, args.index))
     if count:
         print(f"\n{count} finding(s). See the ai-tools-reftags skill.")
+    if _unread_paths:
+        print(f"ref-index: {len(_unread_paths)} file(s) could not be read, so the check did not "
+              f"cover them", file=sys.stderr)
+        return 2
     return 1 if count else 0
+
+
+def stale_index_findings(index_path, expected):
+    """Report the committed index at its first line that differs from `expected`; return the count.
+
+    The comparison is of bytes, against `expected` encoded as `generate --out` writes it (the text
+    default, `locale.getpreferredencoding(False)`), so an undecodable byte or a changed line ending
+    is a difference, as it is to a regenerate-and-diff. An index that cannot be read is reported
+    too, so a missing file does not pass as a current one.
+    """
+    try:
+        with open(index_path, "rb") as handle:
+            have = handle.read()
+    except OSError as exc:
+        print(f"{index_path}:0: stale-index [{index_path}] -- the index cannot be read ({exc}); "
+              f"write it with `generate`")
+        return 1
+    want = expected.encode(locale.getpreferredencoding(False))
+    if have == want:
+        return 0
+    number = have.count(b"\n", 0, len(os.path.commonprefix([have, want]))) + 1
+    print(f"{index_path}:{number}: stale-index [{index_path}] -- the index differs from what "
+          f"`generate` writes from these files, first at this line; regenerate it")
+    return 1
 
 
 def main():
@@ -936,9 +1013,13 @@ def main():
     relink.set_defaults(run=command_relink)
 
     check = commands.add_parser("check", help="report a duplicate, undefined, misplaced, missing, "
-                                              "stale, resurrected, or malformed reference")
+                                              "stale, resurrected, retired, or malformed "
+                                              "reference, and an index that is not current")
     check.add_argument("paths", nargs="+", help="files to read")
     check.add_argument("--retired", metavar="PATH", help=retired_help)
+    check.add_argument("--index", metavar="PATH",
+                       help="the committed index, compared with what `generate` writes from the "
+                            "files (default: not compared)")
     check.set_defaults(run=command_check)
 
     args = parser.parse_args()

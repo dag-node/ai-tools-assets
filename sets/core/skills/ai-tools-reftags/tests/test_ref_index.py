@@ -426,6 +426,110 @@ class RetireTest(RefIndexCase):
         self.assertRegex(out, re.compile(r"^MSG-[A-Z][0-9][A-Z][0-9]$", re.M))
 
 
+class HistoryTest(RefIndexCase):
+    """A released changelog entry cites the codes live at its release, so a citation of a retired
+    id after a `ref-index: history` comment line is history; before it, and in any other file, it
+    is a `retired` finding, and an id the retired file does not list is `undefined` everywhere."""
+
+    def setUp(self):
+        super().setUp()
+        self.write_index()
+        self.run_ri(*RetireTest.RETIRE_ARGS, "--release", "0.16.0")
+        self.write_spec("- The refusal MSG-M3N4 names the path it refuses.")
+        self.fixture("docs/notes.md", "The refusal MSG-M3N4 names the path it refuses.")
+
+    def write_spec(self, *changelog, scriptlet="printf 'refused\\n' >&2"):
+        self.fixture("packaging/x.spec", "%post", scriptlet, "", "# ref-index: history",
+                     "%changelog", *changelog)
+
+    def check(self, *args):
+        return self.run_ri("check", "docs/a.md", "docs/b.md", *args)
+
+    def test_retired_citation_in_history_is_silent(self):
+        rc, out = self.check("packaging/x.spec", "--retired", "retired.md")
+        self.assertEqual((rc, out), (0, ""))
+
+    def test_retired_citation_before_the_marker_or_in_another_file_is_retired(self):
+        self.write_spec("- The refusal MSG-M3N4 names the path it refuses.",
+                        scriptlet="printf 'MSG-M3N4\\nrefused\\n' >&2")
+        rc, out = self.check("packaging/x.spec", "docs/notes.md", "--retired", "retired.md")
+        self.assertEqual(rc, 1, out)
+        self.assertRegex(out, re.compile(
+            r"^docs/notes\.md:1: retired \[MSG-M3N4\] -- retired at 0\.16\.0 ", re.M))
+        self.assertRegex(out, re.compile(r"^packaging/x\.spec:2: retired \[MSG-M3N4\]", re.M))
+        self.assertNotRegex(out, re.compile(r"^packaging/x\.spec:6: ", re.M))
+        self.assertNotIn("undefined", out)
+
+    def test_unknown_id_in_history_is_undefined(self):
+        self.write_spec("- A mistyped code MSG-M3N8.")
+        rc, out = self.check("packaging/x.spec", "--retired", "retired.md")
+        self.assertRegex(out, re.compile(r"^packaging/x\.spec:6: undefined \[MSG-M3N8\]", re.M))
+
+    def test_history_without_retired_reads_like_any_other_text(self):
+        rc, out = self.check("packaging/x.spec")
+        self.assertRegex(out, re.compile(r"^packaging/x\.spec:6: undefined \[MSG-M3N4\]", re.M))
+
+    def test_marker_shown_in_a_span_does_not_open_history(self):
+        self.fixture("docs/notes.md", "A changelog opens with `<!-- ref-index: history -->`.",
+                     "", "The refusal MSG-M3N4 names the path it refuses.")
+        rc, out = self.check("docs/notes.md", "--retired", "retired.md")
+        self.assertRegex(out, re.compile(r"^docs/notes\.md:3: retired \[MSG-M3N4\]", re.M))
+
+
+class StaleIndexTest(RefIndexCase):
+    """`check --index` compares the committed index with what `generate` writes from the same
+    files, so a citation added since the last `generate` is a finding of the one verb."""
+
+    FILES = ("docs/a.md", "docs/b.md", "src/s.sh", "src/t.sh", "docs/code.md", "tests/s.sh")
+
+    def setUp(self):
+        super().setUp()
+        self.write_index()
+
+    def test_current_index_is_silent(self):
+        self.assertSilent(*self.FILES, "--index", "index.md")
+
+    def test_citation_added_since_generate_is_stale_index_at_its_row(self):
+        cited = self.read("docs/b.md") + "The refusal [MSG-M3N4](../src/s.sh).\n"
+        (self.root / "docs/b.md").write_text(cited, encoding="utf-8")
+        self.assertSilent(*self.FILES)
+        row = next(number for number, line in enumerate(self.read("index.md").splitlines(), 1)
+                   if line.startswith("| m3n4 "))
+        rc, out = self.run_ri("check", *self.FILES, "--index", "index.md")
+        self.assertEqual(rc, 1, out)
+        self.assertRegex(out, re.compile(r"^index\.md:%d: stale-index \[index\.md\]" % row, re.M))
+
+    def test_byte_generate_would_change_is_stale_index_at_its_line(self):
+        # An undecodable byte and a dropped final newline are both rewritten by `generate`, so
+        # neither passes as current: the comparison is of the bytes `generate` writes.
+        index = (self.root / "index.md").read_bytes()
+        lines = index.count(b"\n")
+        cases = {"final newline": (index[:-1], lines),
+                 "invalid byte": (index.replace(b"| m3n4 ", b"| m3n4\xff ", 1),
+                                  index[:index.index(b"| m3n4 ")].count(b"\n") + 1)}
+        for case, (content, line) in cases.items():
+            with self.subTest(case=case):
+                (self.root / "index.md").write_bytes(content)
+                rc, out = self.run_ri("check", *self.FILES, "--index", "index.md")
+                self.assertEqual(rc, 1, out)
+                self.assertRegex(out, re.compile(r"^index\.md:%d: stale-index " % line, re.M))
+
+    def test_source_that_cannot_be_read_exits_2_while_the_index_matches_the_rest(self):
+        # The scan skips a file it cannot read, so the rest still render the committed index; the
+        # exit status is what tells a report covering less than was asked from a clean one.
+        for args in ((), ("--index", "index.md")):
+            with self.subTest(args=args):
+                rc, out = self.run_ri("check", *self.FILES, "absent.md", *args)
+                self.assertEqual(rc, 2, out)
+                self.assertIn("cannot read absent.md", out)
+                self.assertNotIn("stale-index", out)
+
+    def test_index_that_cannot_be_read_is_stale_index(self):
+        rc, out = self.run_ri("check", *self.FILES, "--index", "absent.md")
+        self.assertEqual(rc, 1, out)
+        self.assertRegex(out, re.compile(r"^absent\.md:0: stale-index ", re.M))
+
+
 class WhereTest(RefIndexCase):
 
     def setUp(self):

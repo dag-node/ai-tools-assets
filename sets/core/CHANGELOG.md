@@ -7,6 +7,35 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-08
+
+### Added
+
+- **A retired code in a changelog reads as history.** A comment line
+  carrying `ref-index: history` opens history, which runs to the end of
+  its file: a spec file carries it on the line before `%changelog`,
+  a `CHANGELOG.md` as `<!-- ref-index: history -->`. There
+  `ref-index.py check` does not report a citation of a reftag the retired
+  file lists. Anywhere else such a citation is a `retired` finding, with
+  the release that retired it and the hint to drop the reference. An id
+  that neither the tree nor the retired file defines stays `undefined`,
+  history included. Before, a released changelog entry citing a code that
+  a later release retired failed the check as `undefined`, and the only
+  way out was to edit the released entry.
+- **`check` reports an index that is not current.** Given `--index PATH`,
+  `ref-index.py check` compares the committed index with what `generate`
+  writes from the same files and reports `stale-index` at the first line
+  that differs, or where the index cannot be read. Before, a citation
+  added since the last `generate` left the index's "cited by" column
+  stale while `check` exited 0, and only a regenerate-and-diff found it.
+
+### Fixed
+
+- **`check` exits 2 when a file it reads cannot be read.**
+  `ref-index.py check` skips such a file, so its report covers less than
+  was asked. Before, it printed the read error and exited 0 when the rest
+  of the tree was clean.
+
 ## [0.2.4] - 2026-10-17
 
 ### Fixed
