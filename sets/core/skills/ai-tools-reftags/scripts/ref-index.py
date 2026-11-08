@@ -115,7 +115,8 @@
 #                                   whose id is malformed, and, given `--index`, an index that
 #                                   differs from what `generate` writes from the files, which
 #                                   is how a citation added since the last `generate` is seen;
-#                                   exit 1 on any report
+#                                   exit 1 on any report, and 2 when a file it reads could not
+#                                   be read, since the report then covers less than was asked
 
 import argparse
 import datetime
@@ -283,6 +284,7 @@ INLINE_LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)")
 HTML_ANCHOR = re.compile(r'<a\s+(?:id|name)="([^"]+)"')
 HTML_TAG = re.compile(r"<[^>]+>")
 _anchor_cache = {}
+_unread_paths = set()
 
 
 class Target:
@@ -335,12 +337,17 @@ def id_of(reftag):
 
 
 def read_lines(path):
-    """The lines of `path`, or None with a message on stderr when it cannot be read."""
+    """The lines of `path`, or None with a message on stderr when it cannot be read.
+
+    A path that cannot be read is recorded in `_unread_paths`, which `check` reads for its exit
+    status: a scan skips the file, so a clean report would otherwise cover less than was asked.
+    """
     try:
         with open(path, errors="ignore") as handle:
             return handle.read().splitlines()
     except OSError as exc:
         print(f"ref-index: cannot read {path}: {exc}", file=sys.stderr)
+        _unread_paths.add(path)
         return None
 
 
@@ -927,6 +934,10 @@ def command_check(args):
         count += stale_index_findings(args.index, render_index(targets, references, args.index))
     if count:
         print(f"\n{count} finding(s). See the ai-tools-reftags skill.")
+    if _unread_paths:
+        print(f"ref-index: {len(_unread_paths)} file(s) could not be read, so the check did not "
+              f"cover them", file=sys.stderr)
+        return 2
     return 1 if count else 0
 
 

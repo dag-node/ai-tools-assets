@@ -514,6 +514,16 @@ class StaleIndexTest(RefIndexCase):
                 self.assertEqual(rc, 1, out)
                 self.assertRegex(out, re.compile(r"^index\.md:%d: stale-index " % line, re.M))
 
+    def test_source_that_cannot_be_read_exits_2_while_the_index_matches_the_rest(self):
+        # The scan skips a file it cannot read, so the rest still render the committed index; the
+        # exit status is what tells a report covering less than was asked from a clean one.
+        for args in ((), ("--index", "index.md")):
+            with self.subTest(args=args):
+                rc, out = self.run_ri("check", *self.FILES, "absent.md", *args)
+                self.assertEqual(rc, 2, out)
+                self.assertIn("cannot read absent.md", out)
+                self.assertNotIn("stale-index", out)
+
     def test_index_that_cannot_be_read_is_stale_index(self):
         rc, out = self.run_ri("check", *self.FILES, "--index", "absent.md")
         self.assertEqual(rc, 1, out)

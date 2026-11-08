@@ -97,6 +97,9 @@ since the last `generate` changes a "cited by" cell, so `check` alone answers wh
 python3 scripts/ref-index.py check <file>... --index references.md
 ```
 
+`check` exits 1 on any finding, and 2 when a file it reads cannot be read: the scan skips that file, so the report
+covers less than was asked even where the rest is clean.
+
 A malformed reftag is a prefix followed by anything but a four-character id (`ref-section-k7q`, `MSG-12`): a search
 for the token does not find a target, so `check` reports it at the prefix. Write the id in full, or drop the reftag
 shape where the token names an argument, as `MSG-CODE` in a usage line does. A source file contributes its comment lines
