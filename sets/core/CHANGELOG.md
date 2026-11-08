@@ -27,6 +27,13 @@ follow [Semantic Versioning](https://semver.org/).
   added since the last `generate` left the index's "cited by" column
   stale while `check` exited 0, and only a regenerate-and-diff found it.
 
+### Fixed
+
+- **`check` exits 2 when a file it reads cannot be read.**
+  `ref-index.py check` skips such a file, so its report covers less than
+  was asked. Before, it printed the read error and exited 0 when the rest
+  of the tree was clean.
+
 ## [0.2.4] - 2026-10-17
 
 ### Fixed
