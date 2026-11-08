@@ -476,6 +476,50 @@ class HistoryTest(RefIndexCase):
         self.assertRegex(out, re.compile(r"^docs/notes\.md:3: retired \[MSG-M3N4\]", re.M))
 
 
+class StaleIndexTest(RefIndexCase):
+    """`check --index` compares the committed index with what `generate` writes from the same
+    files, so a citation added since the last `generate` is a finding of the one verb."""
+
+    FILES = ("docs/a.md", "docs/b.md", "src/s.sh", "src/t.sh", "docs/code.md", "tests/s.sh")
+
+    def setUp(self):
+        super().setUp()
+        self.write_index()
+
+    def test_current_index_is_silent(self):
+        self.assertSilent(*self.FILES, "--index", "index.md")
+
+    def test_citation_added_since_generate_is_stale_index_at_its_row(self):
+        cited = self.read("docs/b.md") + "The refusal [MSG-M3N4](../src/s.sh).\n"
+        (self.root / "docs/b.md").write_text(cited, encoding="utf-8")
+        self.assertSilent(*self.FILES)
+        row = next(number for number, line in enumerate(self.read("index.md").splitlines(), 1)
+                   if line.startswith("| m3n4 "))
+        rc, out = self.run_ri("check", *self.FILES, "--index", "index.md")
+        self.assertEqual(rc, 1, out)
+        self.assertRegex(out, re.compile(r"^index\.md:%d: stale-index \[index\.md\]" % row, re.M))
+
+    def test_byte_generate_would_change_is_stale_index_at_its_line(self):
+        # An undecodable byte and a dropped final newline are both rewritten by `generate`, so
+        # neither passes as current: the comparison is of the bytes `generate` writes.
+        index = (self.root / "index.md").read_bytes()
+        lines = index.count(b"\n")
+        cases = {"final newline": (index[:-1], lines),
+                 "invalid byte": (index.replace(b"| m3n4 ", b"| m3n4\xff ", 1),
+                                  index[:index.index(b"| m3n4 ")].count(b"\n") + 1)}
+        for case, (content, line) in cases.items():
+            with self.subTest(case=case):
+                (self.root / "index.md").write_bytes(content)
+                rc, out = self.run_ri("check", *self.FILES, "--index", "index.md")
+                self.assertEqual(rc, 1, out)
+                self.assertRegex(out, re.compile(r"^index\.md:%d: stale-index " % line, re.M))
+
+    def test_index_that_cannot_be_read_is_stale_index(self):
+        rc, out = self.run_ri("check", *self.FILES, "--index", "absent.md")
+        self.assertEqual(rc, 1, out)
+        self.assertRegex(out, re.compile(r"^absent\.md:0: stale-index ", re.M))
+
+
 class WhereTest(RefIndexCase):
 
     def setUp(self):

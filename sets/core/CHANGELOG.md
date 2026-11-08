@@ -20,6 +20,12 @@ follow [Semantic Versioning](https://semver.org/).
   history included. Before, a released changelog entry citing a code that
   a later release retired failed the check as `undefined`, and the only
   way out was to edit the released entry.
+- **`check` reports an index that is not current.** Given `--index PATH`,
+  `ref-index.py check` compares the committed index with what `generate`
+  writes from the same files and reports `stale-index` at the first line
+  that differs, or where the index cannot be read. Before, a citation
+  added since the last `generate` left the index's "cited by" column
+  stale while `check` exited 0, and only a regenerate-and-diff found it.
 
 ## [0.2.4] - 2026-10-17
 
